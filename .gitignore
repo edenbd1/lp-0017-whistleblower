@@ -54,5 +54,7 @@ artifacts/
 nwaku-store/
 storage-data/
 
-# External repos cloned for recon (not part of submission)
+# External repos cloned for recon (not part of submission).
+# Match both the directory form and a symlink at the root.
+_external
 _external/
