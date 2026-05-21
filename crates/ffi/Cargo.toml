@@ -1,0 +1,21 @@
+[package]
+name        = "ffi"
+version.workspace      = true
+edition.workspace      = true
+license.workspace      = true
+authors.workspace      = true
+repository.workspace   = true
+description = "C ABI bridge so the Basecamp Qt6 plugin can drive the LP-0017 registry without re-implementing transaction construction."
+
+[lib]
+name       = "lp0017_ffi"
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+registry-core = { path = "../registry-core" }
+indexing      = { path = "../indexing" }
+
+serde.workspace      = true
+serde_json.workspace = true
+anyhow.workspace     = true
+thiserror.workspace  = true

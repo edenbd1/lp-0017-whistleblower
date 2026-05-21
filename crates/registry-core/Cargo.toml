@@ -1,0 +1,19 @@
+[package]
+name        = "registry-core"
+version.workspace      = true
+edition.workspace      = true
+license.workspace      = true
+authors.workspace      = true
+repository.workspace   = true
+description = "Shared Borsh types for the LP-0017 on-chain CID registry. no_std-friendly; consumed by the SPEL guest, the FFI bridge, and the off-chain batch CLI."
+
+[dependencies]
+borsh.workspace      = true
+serde.workspace      = true
+serde_json.workspace = true
+hex.workspace        = true
+sha2.workspace       = true
+
+[features]
+default = ["std"]
+std     = []
