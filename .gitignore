@@ -14,7 +14,10 @@ build-*/
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
-Makefile
+# Ignore CMake-generated Makefiles under build dirs but keep the
+# project-root Makefile (dev wrappers, tracked).
+**/build/Makefile
+**/build-*/Makefile
 moc_*.cpp
 qrc_*.cpp
 ui_*.h
