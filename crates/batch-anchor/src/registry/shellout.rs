@@ -204,6 +204,7 @@ impl ShellOutRegistry {
 
 /// Extract the `tx_hash:` field from `spel`/`lgs` stdout. Returns None
 /// if the line cannot be located — caller falls back to a placeholder.
+#[allow(dead_code)]
 pub(crate) fn parse_tx_hash(stdout: &str) -> Option<String> {
     for line in stdout.lines() {
         let line = line.trim();
@@ -222,6 +223,7 @@ pub(crate) fn parse_tx_hash(stdout: &str) -> Option<String> {
 /// Extract the account-data hex string from `lgs wallet account get
 /// --raw <pda>` stdout. Tolerates multiple emission shapes
 /// (`data: <hex>`, `Account data: 0x<hex>`, JSON-ish single hex line).
+#[allow(dead_code)]
 pub(crate) fn parse_raw_account_hex(stdout: &str) -> Option<String> {
     for line in stdout.lines() {
         let line = line.trim();
