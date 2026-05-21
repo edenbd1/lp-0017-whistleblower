@@ -51,7 +51,12 @@ jobs:
             ~/.risc0
             target
             methods/guest/target
-          key: ${{ runner.os }}-e2e-${{ hashFiles('**/Cargo.lock') }}
+          # Static key — hashFiles('**/...') fails on this repo because
+          # the methods/guest/ workspace + the host workspace share a
+          # parent and Actions' globbing struggles with nested workspaces.
+          # Trade a slightly looser cache for a workflow that actually
+          # runs.
+          key: ${{ runner.os }}-e2e-v1
           restore-keys: |
             ${{ runner.os }}-e2e-
 
