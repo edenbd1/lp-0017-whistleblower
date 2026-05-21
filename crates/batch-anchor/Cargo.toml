@@ -33,3 +33,9 @@ tracing-subscriber.workspace = true
 default   = []
 # Gates ignored e2e tests against a running sequencer (CI e2e tier).
 live-lez  = []
+
+[dependencies.toml]
+version = "0.8"
+
+[dev-dependencies]
+tempfile.workspace = true
