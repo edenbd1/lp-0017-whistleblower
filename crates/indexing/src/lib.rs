@@ -1,10 +1,20 @@
 //! Agnostic document-indexing module for the Logos stack.
 //!
-//! This crate ships three traits — `StorageClient`, `DeliveryClient`,
-//! `RegistryClient` — plus the canonical envelope schema. Any Logos
-//! application that needs the upload → broadcast → anchor pipeline can
-//! depend on this crate alone; no Whistleblower-specific types leak.
+//! Three traits — [`StorageClient`], [`DeliveryClient`], [`RegistryClient`] —
+//! plus the canonical [`Envelope`] schema. Any Logos application that
+//! needs the upload → broadcast → anchor pipeline can depend on this
+//! crate alone; no Whistleblower-specific types leak through.
 //!
 //! See `docs/decisions/002-envelope-schema.md` for the wire format.
 
 #![warn(missing_docs)]
+
+pub mod clients;
+pub mod envelope;
+pub mod retry;
+
+pub use clients::{
+    DeliveryClient, IndexingError, IndexingResult, RegistryClient, StorageClient,
+};
+pub use envelope::{canonical_metadata_hash, Envelope, EnvelopeError};
+pub use retry::{with_retry, RetryConfig};
