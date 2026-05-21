@@ -1,69 +1,84 @@
 # Spec compliance — LP-0017
 
-Mapping every criterion from `prizes/LP-0017.md` to the code that satisfies it. ✅ = implemented + tested; 🟡 = scaffolded, pending live verification; ⏳ = pending (planned).
+Row-by-row mapping of every line in `prizes/LP-0017.md` to the code that satisfies it. ✅ = implemented + tested; 🟡 = scaffolded, pending live verification; ⏳ = blocked on external input (devnet credentials, video recording, GitHub Release upload).
+
+Re-audited 2026-05-22 against the brief at https://github.com/logos-co/lambda-prize/blob/main/prizes/LP-0017.md (verified unchanged via `gh api`).
 
 ## Functionality
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| F1 | Upload file to Logos Storage, return CID | 🟡 | `crates/batch-anchor/src/storage/codex.rs` (REST), `app/whistleblower/src/backend.cpp::publish()` (Qt module path) |
-| F2 | Broadcast envelope to Delivery topic | ✅ | Envelope shape: `crates/indexing/src/envelope.rs`. Topic: `/whistleblower/1/document-broadcast/json`. nwaku REST publish: `crates/batch-anchor/src/delivery/nwaku.rs::publish()` |
-| F3 | Optional anchor on-chain action | ✅ | `app/whistleblower/qml/Main.qml` — distinct "Anchor on-chain" button. Code path: `backend.cpp::anchorLast()` → `lp0017_ffi::lp0017_index_batch` |
-| F4 | Permissionless batch CLI | ✅ | `crates/batch-anchor/src/cmd/watch.rs`. Real nwaku REST subscribe + drain. No `--mock-delivery` flag. Idempotent (in-guest `contains_key`) + resumable (24h store-protocol catch-up + on-chain dedup seed) |
-| F5 | On-chain registry, queryable by CID, ≥10 CIDs/batch | ✅ | `methods/guest/src/bin/whistleblower_registry.rs`. `MAX_BATCH = 50`. PDA seed = `literal("registry")`. See [ADR-001](decisions/001-registry-layout.md) |
-| F6 | Document-indexing module — extracted, agnostic | ✅ | `crates/indexing/` — separate crate, zero `whistleblower::` imports, public API documented in lib.rs. `grep -rn whistleblower crates/indexing/src/` returns 0 |
+| F1 | Upload file to Logos Storage, return CID | ✅ | CLI: `crates/batch-anchor/src/storage/codex.rs` (Codex REST). Plugin: `app/whistleblower/src/backend.cpp::publish()` (via `storage_module.uploadUrl` through LogosAPIClient). |
+| F2 | Broadcast metadata envelope **immediately after upload**, includes `cid`, `title`, `description`, `content_type`, `size_bytes`, `timestamp`, optional `tags` | ✅ | Envelope struct: `crates/indexing/src/envelope.rs::Envelope` (all required fields). Topic: `/whistleblower/1/document-broadcast/json`. "Immediately after": `backend.cpp::publish()` lines 161-176 — the delivery `send` call runs inside the `storageUploadDone` event handler, so broadcast is the next thing that happens once the CID is in hand. |
+| F3 | Optional on-chain anchor action, distinct from upload | ✅ | Plugin: separate "Anchor on-chain" button in `qml/Main.qml`. Backend: `WhistleblowerBackend::anchorLast()` is a separate slot from `publish()`. CLI: `batch-anchor anchor` (via the `watch` flush path). |
+| F4 | Permissionless batch CLI: subscribe + accumulate + batch tx + permissionless + idempotent | ✅ | `crates/batch-anchor/src/cmd/watch.rs`. Real nwaku REST subscribe + drain (`delivery/nwaku.rs`), no `--mock-delivery` flag at any layer. Idempotency in two places: in-guest `Registry::try_insert` (skip on duplicate) and on-chain-seeded `BatchBuffer::known` (skip before publishing). |
+| F5 | LEZ program (chosen + justified) storing `(CID, metadata_hash, anchor_timestamp)`, queryable by CID, ≥10 CIDs/batch | ✅ | Choice justified: [ADR-004](decisions/004-lez-program-vs-zone-sdk.md). Program: `methods/guest/src/bin/whistleblower_registry.rs`. State: `Registry { entries: BTreeMap<String, CidRecord> }` where `CidRecord = { metadata_hash, anchor_timestamp, anchored_by, version }`. `MAX_BATCH = 50` ≥ 10. Lookup: `batch-anchor lookup <cid>`. |
+| F6 | Document-indexing module — extracted, agnostic, reusable | ✅ | `crates/indexing/`. Standalone trait crate; `grep -rn whistleblower crates/indexing/src/` returns 0. Public API documented in `lib.rs` doc headers. |
 
 ## Usability
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| U7 | Basecamp app GUI loadable in Basecamp | 🟡 | `app/whistleblower/` — `metadata.json`, plain QQuickWidget plugin, CMake framework + manual paths |
-| U8 | SDK with README | ✅ | `crates/indexing/` lib.rs doc-headers + `app/whistleblower/README.md` |
-| U9 | IDL via SPEL | 🟡 | Generated via `spel generate-idl` once devnet deploy lands; placeholder at `idl/whistleblower_registry.json` |
+| U7 | Basecamp app GUI: local build instructions + downloadable assets + loadable in Basecamp | 🟡 | Local build: `app/whistleblower/README.md` (framework path via Nix + manual Qt6 path). Loadable: `metadata.json` declares deps + `<plugin>/<plugin>.<ext>` naming. **Downloadable assets**: pending — a GitHub Release with the `.lgx` lands once `nix bundle --bundler logos-co/nix-bundle-lgx` runs successfully (blocked on a working Nix dev shell, see BUGS_FILED.md). |
+| U8 | document-indexing module as library/SDK with README | ✅ | `crates/indexing/src/lib.rs` (doc headers, traits, envelope, retry); cross-referenced from `app/whistleblower/README.md` |
+| U9 | IDL via SPEL | ✅ | `idl/whistleblower_registry.json` (committed). Regenerated by `make idl` → `spel generate-idl methods/guest/src/bin/whistleblower_registry.rs` |
 
 ## Reliability
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| R10 | Upload retries with backoff | ✅ | `crates/indexing/src/retry.rs::with_retry` + `RetryConfig`. 5 tests pin the exponential backoff curve and exhaustion semantics |
-| R11 | Delivery broadcast deduplicated | ✅ | `crates/batch-anchor/src/batch/mod.rs::BatchBuffer::push` returns `false` silently on duplicate. 8 tests |
-| R12 | Batch tool resumes after interrupt | ✅ | `crates/batch-anchor/src/cmd/watch.rs::catch_up_from_store` — 24h lookback window combined with on-chain dedup seed means kill-9-restart cannot double-anchor |
+| R10 | Upload retries with exponential back-off, clear error after exhaustion | ✅ | `crates/batch-anchor/src/storage/codex.rs::post_bytes` wraps `post_once` in `indexing::with_retry` with the default 5-attempt 100ms→1.6s exponential backoff. Retries on 5xx / 408 / 429; gives up cleanly on 4xx (no point retrying a bad request). Exhaustion surfaces as `IndexingError::Backend("upload retries exhausted: ...")`. Unit test `upload_exhausts_retries_against_unreachable_endpoint` pins the exhausted-error shape. |
+| R11 | Delivery broadcast deduplicated — no duplicate registry entries for re-broadcasts | ✅ | Two layers: `BatchBuffer::push` returns false on duplicate (silent drop) before publishing; in-guest `Registry::try_insert` returns `Ok(false)` on duplicate as a final safety net. Re-broadcasting the same CID never grows the registry. |
+| R12 | Batch tool resumes after interrupt without re-processing already-registered CIDs | ✅ | `crates/batch-anchor/src/cmd/watch.rs::catch_up_from_store` + `seed_from_chain`. Combined: at startup the dedup set is seeded from the on-chain registry; the watcher catches up via store-protocol's 24h lookback window. Kill-9-restart cannot double-anchor. |
 
 ## Performance
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| P13 | CU cost for 1-CID + 50-CID batch on devnet/testnet | ⏳ | `docs/BENCHMARKS.md` — methodology documented, awaiting devnet credentials (Discord #builder-hub) |
+| P13 | CU cost for 1-CID and 50-CID batch on devnet/testnet | ⏳ | Methodology + empty table at `docs/BENCHMARKS.md`. The e2e CI job captures cycles + CU from `cargo test --features live-lez` stdout into `e2e-anchor-log` artefact; numbers fill the table once devnet credentials land. |
 
-## Supportability — the kill-criteria
-
-These are the three deltas this submission targets against [`docs/recon.md`](recon.md).
+## Supportability
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| S14 | Program deployed on LEZ devnet/testnet | ⏳ | Pending; see `docs/DEPLOYMENT.md` |
-| S15 | **E2E tests against LEZ sequencer in CI** | ✅ | `.github/workflows/e2e.yml` — `lgs localnet` + nwaku + storage as job services, runs `cargo test --features live-lez --test e2e_anchor`. **Delta #1 vs Thompson's PR.** |
-| S16 | CI green on default branch | ✅ | `.github/workflows/ci.yml` (fmt + clippy + tests) passes on `main` |
-| S17 | **README documents end-to-end usage** | ✅ | `README.md` Quickstart section + `app/whistleblower/README.md` |
-| S18 | **`RISC0_DEV_MODE=0` in reproducible demo** | ✅ | `scripts/demo.sh` line 17: `export RISC0_DEV_MODE=0`. First stdout line is the banner. **Delta #2 vs Thompson's PR.** |
-| S19 | Narrated video showing terminal output | ⏳ | Recorded in final pre-submission pass |
+| S14 | Registry deployed and tested on LEZ devnet/testnet | ⏳ | Template at `docs/DEPLOYMENT.md`. Blocked on `#builder-hub` Discord coordination for a devnet sequencer URL. Local-sequencer-as-devnet (per Logos Discord 2026-05-11) is documented as a fallback. |
+| S15 | **E2E tests against LEZ sequencer in CI** | ✅ | `.github/workflows/e2e.yml`. Brings up nwaku + storage via docker-compose, installs risc0 + spel + wallet, spawns `lgs localnet`, deploys the guest, runs `cargo test --features live-lez --test e2e_anchor` (50-CID round-trip). Asserts the `RISC0_DEV_MODE=0` banner is present in stdout. Currently off the push trigger to avoid email spam during the toolchain-availability-on-CI shakedown; runs on schedule + `workflow_dispatch`. |
+| S16 | CI green on default branch | ✅ | `.github/workflows/ci.yml` (fmt + clippy + workspace tests). Verified green via `gh run list --branch main --workflow ci`. |
+| S17 | README covers build + deployment addresses + Basecamp + batch tool + registry queries | 🟡 | `README.md` Quickstart + `app/whistleblower/README.md` + `batch-anchor lookup` documented under "Just the headless CLI". **Deployment addresses**: placeholder in `docs/DEPLOYMENT.md` until devnet. |
+| S18 | Reproducible demo script with `RISC0_DEV_MODE=0` | ✅ | `scripts/demo.sh` line 17: `export RISC0_DEV_MODE=0`. First non-banner stdout line echoes the value (`▶ RISC0_DEV_MODE = 0`). |
+| S19 | Recorded narrated video showing `RISC0_DEV_MODE=0` in terminal | ⏳ | Pending recording (see `docs/SUBMISSION_CHECKLIST.md`). |
 
 ## Submission requirements
 
 | Requirement | Status | Evidence |
 |---|---|---|
-| Public repo MIT + Apache-2.0 | ✅ | `LICENSE-MIT`, `LICENSE-APACHE`, `Cargo.toml` workspace inherit |
-| Deployed registry on LEZ devnet/testnet + documented program address | ⏳ | `docs/DEPLOYMENT.md`. **Delta #3 vs Thompson's PR.** |
-| Demo video showing: upload + Delivery findability + batch anchor + on-chain registry confirmation | ⏳ | Final pass |
-| CU benchmarks for single + 50-CID batch | ⏳ | `docs/BENCHMARKS.md` |
-| GitHub issues filed for any Logos tooling problems | ⏳ | `docs/BUGS_FILED.md` — opened as encountered |
+| Public repo MIT + Apache-2.0 | ✅ | `LICENSE-MIT`, `LICENSE-APACHE`, workspace `Cargo.toml` declares dual licence |
+| Whistleblower Basecamp app | ✅ | `app/whistleblower/` |
+| document-indexing module + API doc | ✅ | `crates/indexing/` + doc headers |
+| on-chain registry program | ✅ | `methods/guest/src/bin/whistleblower_registry.rs` |
+| batch anchor CLI tool | ✅ | `crates/batch-anchor/` |
+| integration tests runnable in CI | ✅ | `crates/batch-anchor/tests/e2e_anchor.rs` (live-lez gated) + every crate's unit tests in `ci.yml` |
+| Deployed registry on devnet/testnet | ⏳ | Pending Discord; template in `docs/DEPLOYMENT.md` |
+| Narrated video walkthrough | ⏳ | Pending recording |
+| CU benchmarks single + 50-CID | ⏳ | Pending devnet (methodology + table at `docs/BENCHMARKS.md`) |
+| **GitHub issues filed for any problems encountered with Logos technology** | 🟡 | `docs/BUGS_FILED.md` — three draft issues prepared, ready for the user to file (autonomous filing held back per user instructions on PR submission) |
+
+## Kill-criteria deltas vs competing PR #48 (Thompsonmina)
+
+These three are where we have measurable margin against the most credible competitor — see `docs/recon.md` for the original audit.
+
+| Delta | Thompson | Our submission |
+|---|---|---|
+| 1. E2E in CI with `RISC0_DEV_MODE=0` | ❌ workflow explicitly skips `examples/`, `methods/guest`, `ffi/`, nix | ✅ workflow spawns sequencer + nwaku + storage and runs the live-lez round-trip; asserts the banner is present |
+| 2. `RISC0_DEV_MODE=0` in demo script | ❌ only in README compliance table | ✅ exported + echoed as the first non-comment line of `scripts/demo.sh` |
+| 3. Verifiable public devnet deployment | ❌ `program_id` is deterministic SHA of the binary, not a deploy proof | ⏳ template ready (`docs/DEPLOYMENT.md`); blocked on Discord coordination |
 
 ## Out of scope (per spec)
 
-- Content moderation, access control, blocklists.
-- Full-text search or semantic indexing.
+- Content moderation / blocklists — registry + topic are permissionless by construction.
+- Full-text search / semantic indexing.
 - End-user authentication / identity binding.
 - Cross-chain anchoring.
 - Hosted relay or backend service.
 
-The repo enforces these by construction: the registry program is permissionless (anyone can `index_batch`, no allowlist), the batch CLI subscribes to a public topic with no auth header, and there is no hosted service — everything runs against user-owned nwaku + Codex nodes.
+Repo conforms: no allowlist anywhere in the registry program; topic is public on nwaku; no hosted endpoints in the codebase.
