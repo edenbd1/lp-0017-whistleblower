@@ -1,0 +1,31 @@
+# LP-0017 editor configuration. Mirrors the rustfmt / clang-format
+# defaults so editors that pick this file up format consistently with
+# CI.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{rs,toml}]
+indent_style = space
+indent_size = 4
+max_line_length = 100
+
+[*.{cpp,h,hpp}]
+indent_style = space
+indent_size = 4
+
+[*.{qml,js,json}]
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,sh}]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
