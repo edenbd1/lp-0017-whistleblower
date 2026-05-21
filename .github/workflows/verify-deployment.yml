@@ -8,6 +8,9 @@ name: verify-deployment
 # on a known-anchored CID, assert the record decodes.
 
 on:
+  # Nightly + manual only. Read-only against the public devnet, so the
+  # cost of running on every push is zero signal — we keep it off the
+  # push trigger to avoid red-X spam in the inbox.
   schedule:
     - cron: '37 5 * * *'   # nightly UTC, 20 min offset from e2e.yml
   workflow_dispatch:

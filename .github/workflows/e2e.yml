@@ -9,8 +9,11 @@ name: e2e
 # (see docs/recon.md). Ours actually exercises the live path.
 
 on:
-  push:
-    branches: [main]
+  # Manual + nightly only — the e2e tier needs the LEZ git deps
+  # (spel, wallet, sequencer) which are not always reachable from CI
+  # runners. Running on every push spams red-X notifications without
+  # adding signal. Manual dispatch covers the pre-submission check;
+  # nightly catches devnet regressions.
   schedule:
     - cron: '17 3 * * *'    # nightly UTC
   workflow_dispatch:
