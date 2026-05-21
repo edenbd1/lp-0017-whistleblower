@@ -51,8 +51,9 @@ jobs:
             ~/.risc0
             target
             methods/guest/target
-          key: ${{ runner.os }}-e2e-${{ hashFiles('**/Cargo.lock', 'rust-toolchain.toml', 'methods/guest/Cargo.toml') }}
-          restore-keys: ${{ runner.os }}-e2e-
+          key: ${{ runner.os }}-e2e-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-e2e-
 
       - uses: dtolnay/rust-toolchain@stable
 
