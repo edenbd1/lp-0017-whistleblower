@@ -1,0 +1,13 @@
+{
+  "name": "whistleblower",
+  "version": "0.1.0",
+  "description": "Censorship-resistant document upload + on-chain anchoring (LP-0017).",
+  "author": "edenbd1",
+  "type": "ui",
+  "category": "tools",
+  "main": "whistleblower",
+  "view": "qml/Main.qml",
+  "icon": ":/icons/whistleblower.svg",
+  "dependencies": ["storage_module", "delivery_module"],
+  "capabilities": []
+}

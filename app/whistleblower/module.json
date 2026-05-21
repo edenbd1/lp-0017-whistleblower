@@ -1,0 +1,9 @@
+{
+  "_note": "Duplicate of metadata.json so the lambda-prize submission bot picks up the canonical fields. Kept in sync via the CMakeLists.txt configure_file step in the manual build path.",
+  "name": "whistleblower",
+  "version": "0.1.0",
+  "type": "ui",
+  "main": "whistleblower",
+  "view": "qml/Main.qml",
+  "dependencies": ["storage_module", "delivery_module"]
+}
