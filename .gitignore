@@ -1,0 +1,58 @@
+# Rust
+/target/
+**/target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Risc0
+.risc0/
+*.bin
+
+# CMake / Qt build
+build/
+build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.qmlc
+*.jsc
+*.lgx
+
+# Nix
+result
+result-*
+
+# Editors & OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Env
+.env
+.env.local
+*.local
+
+# Node (for any GUI tooling)
+node_modules/
+dist/
+
+# Logs
+*.log
+
+# Demo artifacts (regenerable)
+artifacts/
+.demo-state
+.basecamp-data/
+
+# nwaku + storage local data
+nwaku-store/
+storage-data/
+
+# External repos cloned for recon (not part of submission)
+_external/
