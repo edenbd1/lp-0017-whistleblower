@@ -49,15 +49,19 @@ pub struct Envelope {
     /// Unix seconds.
     pub timestamp: u64,
 
-    /// Discovery metadata. All optional — anchor pipeline ignores them.
+    /// Optional discovery metadata — anchor pipeline ignores all of these.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    /// Optional discovery metadata.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    /// Optional discovery metadata.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub content_type: Option<String>,
+    /// Optional discovery metadata.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub size_bytes: Option<u64>,
+    /// Optional discovery metadata.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<String>,
 }
