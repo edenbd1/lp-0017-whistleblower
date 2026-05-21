@@ -103,8 +103,7 @@ async fn catch_up_from_store(
     if cfg.delivery.store_lookback_hours == 0 {
         return Ok(());
     }
-    let lookback_ns: u128 = ((cfg.delivery.store_lookback_hours as u128) * 3_600)
-        * 1_000_000_000;
+    let lookback_ns: u128 = ((cfg.delivery.store_lookback_hours as u128) * 3_600) * 1_000_000_000;
     let now_ns: u128 = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
@@ -129,10 +128,7 @@ async fn catch_up_from_store(
     Ok(())
 }
 
-async fn flush_once(
-    registry: &ShellOutRegistry,
-    buffer: &mut BatchBuffer,
-) -> anyhow::Result<()> {
+async fn flush_once(registry: &ShellOutRegistry, buffer: &mut BatchBuffer) -> anyhow::Result<()> {
     let envs = buffer.drain_batch();
     if envs.is_empty() {
         return Ok(());

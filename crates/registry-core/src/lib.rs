@@ -161,7 +161,9 @@ mod tests {
     #[test]
     fn insert_increments_len() {
         let mut r = Registry::default();
-        assert!(r.try_insert(cid(1), CidRecord::new(hash(1), 100, signer())).unwrap());
+        assert!(r
+            .try_insert(cid(1), CidRecord::new(hash(1), 100, signer()))
+            .unwrap());
         assert_eq!(r.len(), 1);
         assert!(r.contains(&cid(1)));
     }
@@ -169,8 +171,11 @@ mod tests {
     #[test]
     fn duplicate_insert_is_silent_skip() {
         let mut r = Registry::default();
-        r.try_insert(cid(1), CidRecord::new(hash(1), 100, signer())).unwrap();
-        let added = r.try_insert(cid(1), CidRecord::new(hash(99), 999, signer())).unwrap();
+        r.try_insert(cid(1), CidRecord::new(hash(1), 100, signer()))
+            .unwrap();
+        let added = r
+            .try_insert(cid(1), CidRecord::new(hash(99), 999, signer()))
+            .unwrap();
         assert!(!added, "duplicate must report not-newly-inserted");
         assert_eq!(r.len(), 1);
         // First write wins:
@@ -182,16 +187,17 @@ mod tests {
     fn registry_full_rejects_new_cids_only() {
         let mut r = Registry::default();
         for i in 0..MAX_ENTRIES {
-            r.try_insert(format!("cid:{i}"), CidRecord::new(hash(0), 1, signer())).unwrap();
+            r.try_insert(format!("cid:{i}"), CidRecord::new(hash(0), 1, signer()))
+                .unwrap();
         }
         // Existing CID still returns Ok(false).
-        assert_eq!(
-            r.try_insert("cid:0".into(), CidRecord::new(hash(0), 1, signer())).unwrap(),
-            false
-        );
+        assert!(!r
+            .try_insert("cid:0".into(), CidRecord::new(hash(0), 1, signer()))
+            .unwrap());
         // Brand new CID rejected with RegistryFull.
         assert_eq!(
-            r.try_insert("cid:new".into(), CidRecord::new(hash(0), 1, signer())).unwrap_err(),
+            r.try_insert("cid:new".into(), CidRecord::new(hash(0), 1, signer()))
+                .unwrap_err(),
             RegistryError::RegistryFull
         );
     }
@@ -243,14 +249,16 @@ mod tests {
     fn borsh_roundtrip_is_deterministic() {
         let mut r = Registry::default();
         for i in 0..10 {
-            r.try_insert(cid(i), CidRecord::new(hash(i), 100 + i as i64, signer())).unwrap();
+            r.try_insert(cid(i), CidRecord::new(hash(i), 100 + i as i64, signer()))
+                .unwrap();
         }
         // Re-serialize after inserting in a different order — Borsh +
         // BTreeMap means the bytes must be identical.
         let bytes_a = borsh::to_vec(&r).unwrap();
         let mut r2 = Registry::default();
         for i in (0..10).rev() {
-            r2.try_insert(cid(i), CidRecord::new(hash(i), 100 + i as i64, signer())).unwrap();
+            r2.try_insert(cid(i), CidRecord::new(hash(i), 100 + i as i64, signer()))
+                .unwrap();
         }
         let bytes_b = borsh::to_vec(&r2).unwrap();
         assert_eq!(bytes_a, bytes_b, "borsh encoding must be order-independent");

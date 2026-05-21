@@ -57,8 +57,18 @@ struct LookupRequest {
 #[derive(Debug, Serialize)]
 #[serde(tag = "status", rename_all = "snake_case")]
 enum Response<T: Serialize> {
-    Ok { data: T },
-    Err { code: u32, message: String },
+    // The Ok variant is constructed by the live-lez gated build (when
+    // the FFI shells out to ShellOutRegistry and gets a real tx_hash).
+    // Mark it `dead_code` here so the host-only fast tier stays clippy
+    // clean.
+    #[allow(dead_code)]
+    Ok {
+        data: T,
+    },
+    Err {
+        code: u32,
+        message: String,
+    },
 }
 
 fn to_cstring(s: String) -> *mut c_char {
@@ -148,9 +158,7 @@ pub unsafe extern "C" fn lp0017_index_batch(req_json: *const c_char) -> *mut c_c
         };
         hashes.push(arr);
     }
-    if let Err(e) =
-        registry_core::validate_batch(&req.cids, &hashes, &req.anchor_timestamps)
-    {
+    if let Err(e) = registry_core::validate_batch(&req.cids, &hashes, &req.anchor_timestamps) {
         return err_response(e.code(), format!("{e:?}"));
     }
     // Same shim status as init — wired in the live-lez build.
@@ -160,6 +168,8 @@ pub unsafe extern "C" fn lp0017_index_batch(req_json: *const c_char) -> *mut c_c
     )
 }
 
+// Same reason as Response::Ok: only constructed in the live-lez build.
+#[allow(dead_code)]
 #[derive(Serialize)]
 struct LookupHit {
     cid: String,

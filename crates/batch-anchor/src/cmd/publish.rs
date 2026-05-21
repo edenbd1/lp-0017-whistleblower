@@ -91,9 +91,18 @@ mod tests {
 
     #[test]
     fn known_extensions_map_to_mime() {
-        assert_eq!(mime_from_extension(Path::new("a.pdf")).unwrap(), "application/pdf");
-        assert_eq!(mime_from_extension(Path::new("img.PNG")).unwrap(), "image/png");
-        assert_eq!(mime_from_extension(Path::new("v.mp4")).unwrap(), "video/mp4");
+        assert_eq!(
+            mime_from_extension(Path::new("a.pdf")).unwrap(),
+            "application/pdf"
+        );
+        assert_eq!(
+            mime_from_extension(Path::new("img.PNG")).unwrap(),
+            "image/png"
+        );
+        assert_eq!(
+            mime_from_extension(Path::new("v.mp4")).unwrap(),
+            "video/mp4"
+        );
     }
 
     #[test]

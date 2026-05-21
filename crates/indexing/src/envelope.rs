@@ -73,8 +73,8 @@ impl Envelope {
             .metadata_hash
             .strip_prefix("v1:")
             .ok_or_else(|| EnvelopeError::BadHash("missing v1: prefix".into()))?;
-        let bytes = hex::decode(hex_str)
-            .map_err(|e| EnvelopeError::BadHash(format!("hex decode: {e}")))?;
+        let bytes =
+            hex::decode(hex_str).map_err(|e| EnvelopeError::BadHash(format!("hex decode: {e}")))?;
         bytes
             .try_into()
             .map_err(|_| EnvelopeError::BadHash("hash is not 32 bytes".into()))
@@ -207,14 +207,20 @@ mod tests {
     fn rejects_empty_cid() {
         let mut e = sample();
         e.cid = "".into();
-        assert!(matches!(e.validate(), Err(EnvelopeError::MissingField("cid"))));
+        assert!(matches!(
+            e.validate(),
+            Err(EnvelopeError::MissingField("cid"))
+        ));
     }
 
     #[test]
     fn rejects_zero_timestamp() {
         let mut e = sample();
         e.timestamp = 0;
-        assert!(matches!(e.validate(), Err(EnvelopeError::MissingField("timestamp"))));
+        assert!(matches!(
+            e.validate(),
+            Err(EnvelopeError::MissingField("timestamp"))
+        ));
     }
 
     #[test]

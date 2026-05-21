@@ -13,8 +13,6 @@ pub mod clients;
 pub mod envelope;
 pub mod retry;
 
-pub use clients::{
-    DeliveryClient, IndexingError, IndexingResult, RegistryClient, StorageClient,
-};
+pub use clients::{DeliveryClient, IndexingError, IndexingResult, RegistryClient, StorageClient};
 pub use envelope::{canonical_metadata_hash, Envelope, EnvelopeError};
 pub use retry::{with_retry, RetryConfig};

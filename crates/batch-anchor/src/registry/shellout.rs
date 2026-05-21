@@ -230,18 +230,14 @@ pub(crate) fn parse_raw_account_hex(stdout: &str) -> Option<String> {
         for prefix in ["data:", "Account data:", "Data:"] {
             if let Some(rest) = line.strip_prefix(prefix) {
                 let candidate = rest.trim().trim_matches('"').trim_start_matches("0x");
-                if candidate.chars().all(|c| c.is_ascii_hexdigit())
-                    && !candidate.is_empty()
-                {
+                if candidate.chars().all(|c| c.is_ascii_hexdigit()) && !candidate.is_empty() {
                     return Some(candidate.to_string());
                 }
             }
         }
         // Last-ditch: a single all-hex token on its own line.
         let candidate = line.trim_start_matches("0x");
-        if candidate.len() > 8
-            && candidate.chars().all(|c| c.is_ascii_hexdigit())
-        {
+        if candidate.len() > 8 && candidate.chars().all(|c| c.is_ascii_hexdigit()) {
             return Some(candidate.to_string());
         }
     }
@@ -305,11 +301,7 @@ mod tests {
         };
         // Arity mismatch — should never reach the shell-out path.
         let err = r
-            .index_batch(
-                &["cid".into()],
-                &[],
-                &[1_u32],
-            )
+            .index_batch(&["cid".into()], &[], &[1_u32])
             .await
             .unwrap_err();
         match err {

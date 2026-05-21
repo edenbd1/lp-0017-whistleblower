@@ -71,11 +71,9 @@ struct EmbeddedMessage {
 
 impl StoreMessage {
     fn payload_b64(&self) -> Option<&str> {
-        self.payload.as_deref().or_else(|| {
-            self.message
-                .as_ref()
-                .and_then(|m| m.payload.as_deref())
-        })
+        self.payload
+            .as_deref()
+            .or_else(|| self.message.as_ref().and_then(|m| m.payload.as_deref()))
     }
 }
 

@@ -21,7 +21,11 @@ async fn main() -> anyhow::Result<()> {
 }
 
 fn init_tracing(verbose: bool) {
-    let default = if verbose { "debug,hyper=info,reqwest=info" } else { "info,hyper=warn,reqwest=warn" };
+    let default = if verbose {
+        "debug,hyper=info,reqwest=info"
+    } else {
+        "info,hyper=warn,reqwest=warn"
+    };
     let filter = tracing_subscriber::EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(default));
     tracing_subscriber::fmt().with_env_filter(filter).init();

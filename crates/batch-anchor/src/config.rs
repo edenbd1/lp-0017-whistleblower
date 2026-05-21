@@ -2,8 +2,8 @@
 //!
 //! The CLI accepts `--config <path>` (defaults to `./batch-anchor.toml`).
 //! Every field has a sensible default targetting a local `lgs localnet`
-//! + the `docker-compose.yml` shipped with this repo, so a fresh clone
-//! that follows the README runs without editing config.
+//! plus the `docker-compose.yml` shipped with this repo, so a fresh
+//! clone that follows the README runs without editing config.
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;

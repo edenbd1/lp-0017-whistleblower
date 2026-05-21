@@ -16,11 +16,7 @@ pub async fn run(cfg: &Config) -> anyhow::Result<()> {
     let registry_ok = registry.is_initialised().await.unwrap_or(false);
 
     println!("storage   ({}): {}", cfg.storage.url, status(storage_ok));
-    println!(
-        "delivery  ({}): {}",
-        cfg.delivery.url,
-        status(delivery_ok)
-    );
+    println!("delivery  ({}): {}", cfg.delivery.url, status(delivery_ok));
     println!(
         "registry  ({}): {}",
         cfg.registry.sequencer_url,

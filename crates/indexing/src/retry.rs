@@ -38,8 +38,8 @@ impl RetryConfig {
         if attempt <= 1 {
             return Duration::ZERO;
         }
-        let raw_ms = self.base_delay.as_millis() as f64
-            * self.growth.powi((attempt - 1) as i32 - 1);
+        let raw_ms =
+            self.base_delay.as_millis() as f64 * self.growth.powi((attempt - 1) as i32 - 1);
         Duration::from_millis(raw_ms.min(self.max_delay.as_millis() as f64) as u64)
     }
 }
