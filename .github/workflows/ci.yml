@@ -1,0 +1,58 @@
+name: ci
+
+# Fast tier (< 4 minutes target). Runs on every push and pull request.
+# Covers fmt, clippy, and the in-process test suite for every workspace
+# member except the riscv32im SPEL guest (whistleblower-registry-guest)
+# — that one builds in `.github/workflows/e2e.yml`.
+#
+# See docs/decisions/003-ci-with-sequencer.md for the rationale.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  fmt:
+    name: cargo fmt --check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy-test:
+    name: clippy + workspace tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-ci-${{ hashFiles('**/Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: ${{ runner.os }}-ci-
+
+      - name: cargo clippy
+        # Guest crate is in its own workspace (RISC-V target) — built in
+        # e2e.yml via cargo-risczero. Excluding here keeps the fast
+        # tier hermetic and avoids the multi-GB risc0 toolchain pull.
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: cargo test
+        run: cargo test --workspace --exclude whistleblower-registry-guest -- --nocapture
