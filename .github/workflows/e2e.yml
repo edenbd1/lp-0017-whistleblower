@@ -24,35 +24,23 @@ jobs:
     name: anchor round-trip with RISC0_DEV_MODE=0
     runs-on: ubuntu-latest
     timeout-minutes: 35
-    services:
-      nwaku:
-        image: harbor.status.im/wakuorg/nwaku:v0.38.0
-        ports: ['8645:8645']
-        options: >-
-          --health-cmd "wget -qO- http://127.0.0.1:8645/health || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 12
-        env:
-          # Note: this only covers the basic relay path; the production
-          # demo uses the full docker-compose to wire DiscV5 bootnodes.
-          # CI doesn't need them — it publishes + drains on the same
-          # node within the same job.
-          WAKUNODE2_CMD: ' --rest=true --rest-address=0.0.0.0 --rest-port=8645 --relay=true --cluster-id=2 --num-shards-in-network=8 --store=true --store-message-db-url=sqlite:///tmp/store.sqlite3 '
-      storage:
-        image: logosstorage/logos-storage-nim:latest
-        ports: ['8080:8080']
-        env:
-          STORAGE_LOG_LEVEL: WARN
-          STORAGE_DATA_DIR: /datadir
-          STORAGE_LISTEN_ADDRS: /ip4/0.0.0.0/tcp/2345
-          STORAGE_API_BINDADDR: 0.0.0.0
-          STORAGE_API_PORT: 8080
-          STORAGE_REPO_KIND: fs
-          STORAGE_STORAGE_QUOTA: "1073741824"
-          STORAGE_MAX_PEERS: 16
     steps:
       - uses: actions/checkout@v4
+
+      - name: start nwaku + storage via compose
+        # docker compose (not GitHub Actions services:) so we can pass
+        # CLI args to nwaku — its image expects them, not env vars.
+        run: |
+          docker compose -f infra/docker-compose.yml up -d
+          for _ in $(seq 1 30); do
+            curl -sS http://127.0.0.1:8645/health >/dev/null \
+              && curl -sS -X HEAD http://127.0.0.1:8080/data >/dev/null 2>&1 \
+              && break
+            sleep 4
+          done
+          curl -sS http://127.0.0.1:8645/health
+          echo
+          docker ps --format '{{.Names}}: {{.Status}}'
 
       - name: cache cargo + risc0
         uses: actions/cache@v4
