@@ -1,0 +1,6 @@
+[toolchain]
+# Pinned to match risc0-zkvm 3.0.5's rustc requirement (per
+# https://github.com/risc0/risc0/blob/v3.0.5/rust-toolchain.toml).
+channel = "1.85.0"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

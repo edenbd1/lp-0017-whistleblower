@@ -1,0 +1,40 @@
+# SPEL guest crate for the LP-0017 registry.
+#
+# Builds for `riscv32im-risc0-zkvm-elf` via `cargo risczero build` —
+# this is a separate workspace from the host crates so the RISC-V
+# target rustflags / panic strategy don't leak into the host build.
+#
+# LEZ deps pinned to tag = "v0.2.0-rc3" because that's the only tag
+# `spel-framework v0.3.0` is compatible with (see docs/decisions/
+# 003-ci-with-sequencer.md §"Caching strategy").
+
+[workspace]
+
+[package]
+name        = "whistleblower-registry-guest"
+version     = "0.1.0"
+edition     = "2021"
+license     = "MIT OR Apache-2.0"
+description = "SPEL guest for the LP-0017 CID registry."
+publish     = false
+
+[[bin]]
+name = "whistleblower_registry"
+path = "src/bin/whistleblower_registry.rs"
+
+[dependencies]
+borsh         = { version = "1.5", features = ["derive"] }
+risc0-zkvm    = { version = "3.0.5", default-features = false, features = ["std"] }
+
+# Pulled in via git pin per the version-matrix in docs/decisions/003.
+spel-framework      = { git = "https://github.com/logos-co/spel.git",                                tag = "v0.3.0" }
+spel-framework-core = { git = "https://github.com/logos-co/spel.git",                                tag = "v0.3.0" }
+nssa_core           = { git = "https://github.com/logos-blockchain/logos-execution-zone.git",        tag = "v0.2.0-rc3", package = "nssa_core" }
+
+registry-core = { path = "../../crates/registry-core", default-features = false }
+
+[profile.release]
+opt-level     = 3
+lto           = "thin"
+codegen-units = 1
+panic         = "abort"
