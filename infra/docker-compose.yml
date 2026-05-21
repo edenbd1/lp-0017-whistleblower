@@ -1,0 +1,74 @@
+# LP-0017 local-development stack.
+#
+# Brings up two containers:
+#
+#   nwaku   — Logos Delivery transport (cluster 2, logos.dev preset,
+#             RLN off). Used by the batch CLI's subscribe + drain paths
+#             and by the Basecamp plugin's delivery_module bridge.
+#
+#   storage — Codex / logos-storage-nim node. Used by the Basecamp
+#             plugin's storage_module bridge and by the batch CLI's
+#             `publish` subcommand.
+#
+# Both speak HTTP REST on localhost-only bindings. The CI e2e job
+# (`.github/workflows/e2e.yml`) brings up the same compose under a
+# different network namespace so the two stacks don't collide.
+
+services:
+  nwaku:
+    image: harbor.status.im/wakuorg/nwaku:v0.38.0
+    container_name: lp17-nwaku
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8645:8645"      # REST  (/relay/v1/*, /store/v3/*, /health)
+      - "30303:30303/tcp"          # libp2p relay
+      - "30303:30303/udp"          # discv5
+    volumes:
+      - ./nwaku-store:/store
+    command:
+      - --rest=true
+      - --rest-address=0.0.0.0
+      - --rest-port=8645
+      - --rest-admin=true
+      - --relay=true
+      - --cluster-id=2
+      - --num-shards-in-network=8
+      - --store=true
+      - --store-message-db-url=sqlite:///store/store.sqlite3
+      - --discv5-discovery=true
+      # logos.dev fleet bootstrap peers — same set Thompson's repo uses.
+      - --staticnode=/dns4/delivery-01.do-ams3.logos.dev.status.im/tcp/30303/p2p/16Uiu2HAmTUbnxLGT9JvV6mu9oPyDjqHK4Phs1VDJNUgESgNSkuby
+      - --staticnode=/dns4/delivery-02.do-ams3.logos.dev.status.im/tcp/30303/p2p/16Uiu2HAmMK7PYygBtKUQ8EHp7EfaD3bCEsJrkFooK8RQ2PVpJprH
+      - --staticnode=/dns4/delivery-01.gc-us-central1-a.logos.dev.status.im/tcp/30303/p2p/16Uiu2HAm4S1JYkuzDKLKQvwgAhZKs9otxXqt8SCGtB4hoJP1S397
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8645/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  storage:
+    image: logosstorage/logos-storage-nim:latest
+    container_name: lp17-storage
+    restart: unless-stopped
+    environment:
+      STORAGE_LOG_LEVEL: INFO
+      STORAGE_DATA_DIR: /datadir
+      STORAGE_LISTEN_ADDRS: /ip4/0.0.0.0/tcp/2345
+      STORAGE_API_BINDADDR: 0.0.0.0
+      STORAGE_API_PORT: 8080
+      STORAGE_REPO_KIND: fs
+      STORAGE_STORAGE_QUOTA: "8589934592"   # 8 GiB
+      STORAGE_MAX_PEERS: 160
+    ports:
+      - "127.0.0.1:8080:8080"      # REST   (/data, /data/session/*)
+      - "2345:2345/tcp"            # libp2p
+      - "8090:8090/udp"            # discovery
+    volumes:
+      - ./storage-data:/datadir
+    healthcheck:
+      # No /health endpoint; HEAD /data returns 200/405, both are
+      # "process is up and HTTP listener bound".
+      test: ["CMD-SHELL", "wget --method=HEAD -qO- http://127.0.0.1:8080/data || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
