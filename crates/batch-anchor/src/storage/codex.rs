@@ -43,7 +43,7 @@ impl CodexRest {
     async fn post_once(&self, filename: &str, bytes: &[u8]) -> IndexingResult<String> {
         let r = self
             .http
-            .post(self.endpoint("/data"))
+            .post(self.endpoint("/api/storage/v1/data"))
             .header("Content-Type", "application/octet-stream")
             .header(
                 "Content-Disposition",
@@ -113,10 +113,17 @@ fn sanitize_filename(name: &str) -> String {
 #[async_trait]
 impl StorageClient for CodexRest {
     async fn healthy(&self) -> bool {
-        // Codex doesn't ship a /health endpoint; HEAD /data is the
-        // cheapest probe that doesn't require a known CID.
-        match self.http.head(self.endpoint("/data")).send().await {
-            Ok(r) => r.status().is_success() || r.status().as_u16() == 405,
+        // Logos Storage doesn't ship a dedicated /health endpoint.
+        // `GET /api/storage/v1/spr` returns 200 with the node's
+        // Signed Peer Record once the daemon is fully up — perfect
+        // "fully booted" signal that doesn't require a known CID.
+        match self
+            .http
+            .get(self.endpoint("/api/storage/v1/spr"))
+            .send()
+            .await
+        {
+            Ok(r) => r.status().is_success(),
             Err(_) => false,
         }
     }
@@ -144,8 +151,11 @@ mod tests {
 
     #[test]
     fn endpoint_normalises_trailing_slash() {
-        let c = CodexRest::new("http://localhost:8080/");
-        assert_eq!(c.endpoint("/data"), "http://localhost:8080/data");
+        let c = CodexRest::new("http://localhost:18080/");
+        assert_eq!(
+            c.endpoint("/api/storage/v1/data"),
+            "http://localhost:18080/api/storage/v1/data"
+        );
     }
 
     #[test]

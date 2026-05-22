@@ -51,7 +51,10 @@ pub struct StorageSection {
 impl Default for StorageSection {
     fn default() -> Self {
         Self {
-            url: "http://127.0.0.1:8080".into(),
+            // 18080, not 8080: the shipped docker-compose remaps the
+            // storage REST port so we don't collide with the
+            // ubiquitous :8080 dev port. See infra/docker-compose.yml.
+            url: "http://127.0.0.1:18080".into(),
         }
     }
 }
@@ -125,7 +128,7 @@ mod tests {
     fn defaults_populate_sensible_endpoints() {
         let c = Config::default();
         assert_eq!(c.delivery.url, "http://127.0.0.1:8645");
-        assert_eq!(c.storage.url, "http://127.0.0.1:8080");
+        assert_eq!(c.storage.url, "http://127.0.0.1:18080");
         assert_eq!(c.registry.sequencer_url, "http://127.0.0.1:3040");
         assert_eq!(c.batch.flush_size, registry_core::MAX_BATCH);
         assert_eq!(c.delivery.topics.len(), 1);
@@ -155,6 +158,6 @@ store_lookback_hours = 6
         assert_eq!(cfg.delivery.url, "http://nwaku.example:9999");
         assert_eq!(cfg.delivery.topics, vec!["/custom/1/json".to_string()]);
         // Other sections still come from defaults:
-        assert_eq!(cfg.storage.url, "http://127.0.0.1:8080");
+        assert_eq!(cfg.storage.url, "http://127.0.0.1:18080");
     }
 }

@@ -50,6 +50,9 @@ services:
     image: logosstorage/logos-storage-nim:latest
     container_name: lp17-storage
     restart: unless-stopped
+    # Default platform target — falls back gracefully on ARM if a
+    # native image is published later.
+    platform: linux/amd64
     environment:
       STORAGE_LOG_LEVEL: INFO
       STORAGE_DATA_DIR: /datadir
@@ -60,15 +63,19 @@ services:
       STORAGE_STORAGE_QUOTA: "8589934592"   # 8 GiB
       STORAGE_MAX_PEERS: 160
     ports:
-      - "127.0.0.1:8080:8080"      # REST   (/data, /data/session/*)
+      # 18080 chosen so we don't collide with other dev containers on
+      # the host (8080 is a popular dev port). The CLI's default
+      # `storage.url` in batch-anchor.toml.example matches.
+      - "127.0.0.1:18080:8080"     # REST   (/data, /data/session/*)
       - "2345:2345/tcp"            # libp2p
       - "8090:8090/udp"            # discovery
     volumes:
       - ./storage-data:/datadir
     healthcheck:
-      # No /health endpoint; HEAD /data returns 200/405, both are
-      # "process is up and HTTP listener bound".
-      test: ["CMD-SHELL", "wget --method=HEAD -qO- http://127.0.0.1:8080/data || exit 1"]
+      # No /health endpoint. /api/storage/v1/spr returns 200 once the
+      # node has its Signed Peer Record, which happens at the end of
+      # boot — perfect "fully up" signal.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/api/storage/v1/spr || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 12

@@ -16,8 +16,10 @@ topics = [
 store_lookback_hours = 24
 
 [storage]
-# Codex / logos-storage REST endpoint.
-url = "http://127.0.0.1:8080"
+# Codex / logos-storage REST endpoint. The shipped docker-compose
+# binds storage on :18080 so it doesn't collide with the popular
+# :8080 dev port.
+url = "http://127.0.0.1:18080"
 
 [registry]
 # LEZ sequencer endpoint. lgs localnet defaults to :3040.
