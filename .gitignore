@@ -18,6 +18,8 @@ cmake_install.cmake
 # project-root Makefile (dev wrappers, tracked).
 **/build/Makefile
 **/build-*/Makefile
+# Stage-copy of metadata.json used by moc for Q_PLUGIN_METADATA
+app/whistleblower/src/metadata.json
 moc_*.cpp
 qrc_*.cpp
 ui_*.h

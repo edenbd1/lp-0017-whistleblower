@@ -41,6 +41,13 @@ else()
         Core Gui Widgets Quick QuickWidgets Qml Concurrent
     )
 
+    # Qt's moc resolves Q_PLUGIN_METADATA(FILE "...") relative to the
+    # location of the header that declares the plugin (here src/plugin.h).
+    # Stage a copy of metadata.json into src/ so moc finds it without
+    # us having to relativise the path in the header.
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/metadata.json
+                   ${CMAKE_CURRENT_SOURCE_DIR}/src/metadata.json COPYONLY)
+
     qt_add_plugin(whistleblower_plugin CLASS_NAME WhistleblowerPlugin)
 
     target_sources(whistleblower_plugin PRIVATE

@@ -25,6 +25,10 @@ public:
     virtual void destroyWidget(QWidget* widget) = 0;
 };
 
+// IID required by Q_INTERFACES so moc can build the metadata table.
+// Matches the IID Basecamp's PluginLoader queries via qobject_cast.
+Q_DECLARE_INTERFACE(IComponent, "com.networkschool.logos.IComponent/1.0")
+
 #define WhistleblowerPlugin_IID "com.networkschool.lp0017.WhistleblowerPlugin/1.0"
 
 class WhistleblowerPlugin : public QObject, public IComponent {
