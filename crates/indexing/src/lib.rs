@@ -3,7 +3,8 @@
 //! Three traits — [`StorageClient`], [`DeliveryClient`], [`RegistryClient`] —
 //! plus the canonical [`Envelope`] schema. Any Logos application that
 //! needs the upload → broadcast → anchor pipeline can depend on this
-//! crate alone; no Whistleblower-specific types leak through.
+//! crate alone; the public API exposes only generic primitives and
+//! never references any consuming app's types or namespace.
 //!
 //! See `docs/decisions/002-envelope-schema.md` for the wire format.
 
