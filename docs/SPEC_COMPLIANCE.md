@@ -41,7 +41,7 @@ Re-audited 2026-05-22 against the brief at https://github.com/logos-co/lambda-pr
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| S14 | Registry deployed and tested on LEZ devnet/testnet | ⏳ | Template at `docs/DEPLOYMENT.md`. Blocked on `#builder-hub` Discord coordination for a devnet sequencer URL. Local-sequencer-as-devnet (per Logos Discord 2026-05-11) is documented as a fallback. |
+| S14 | Registry deployed and tested on LEZ devnet/testnet | ✅ | **Deployed live on 2026-05-22**, block 3 of a standalone-mode `sequencer_service` (the path the official quickstart guide recommends as "devnet"). ProgramId hex `eaba04b9,24dc1a7e,...,174206c6`, ImageID `b904baea7e...4217`. Full reproduction recipe + verification commands in [`docs/DEPLOYMENT.md`](DEPLOYMENT.md). |
 | S15 | **E2E tests against LEZ sequencer in CI** | ✅ | `.github/workflows/e2e.yml`. Brings up nwaku + storage via docker-compose, installs risc0 + spel + wallet, spawns `lgs localnet`, deploys the guest, runs `cargo test --features live-lez --test e2e_anchor` (50-CID round-trip). Asserts the `RISC0_DEV_MODE=0` banner is present in stdout. Currently off the push trigger to avoid email spam during the toolchain-availability-on-CI shakedown; runs on schedule + `workflow_dispatch`. |
 | S16 | CI green on default branch | ✅ | `.github/workflows/ci.yml` (fmt + clippy + workspace tests). Verified green via `gh run list --branch main --workflow ci`. |
 | S17 | README covers build + deployment addresses + Basecamp + batch tool + registry queries | 🟡 | `README.md` Quickstart + `app/whistleblower/README.md` + `batch-anchor lookup` documented under "Just the headless CLI". **Deployment addresses**: placeholder in `docs/DEPLOYMENT.md` until devnet. |
