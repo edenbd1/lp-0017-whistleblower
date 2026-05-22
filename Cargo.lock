@@ -97,6 +97,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "base64",
+ "borsh",
  "clap",
  "hex",
  "indexing",
