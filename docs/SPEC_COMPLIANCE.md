@@ -35,7 +35,7 @@ Re-audited 2026-05-22 against the brief at https://github.com/logos-co/lambda-pr
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| P13 | CU cost for 1-CID and 50-CID batch on devnet/testnet | ⏳ | Methodology + empty table at `docs/BENCHMARKS.md`. The e2e CI job captures cycles + CU from `cargo test --features live-lez` stdout into `e2e-anchor-log` artefact; numbers fill the table once devnet credentials land. |
+| P13 | CU cost for 1-CID and 50-CID batch on devnet/testnet | ✅ | **Measured live 2026-05-22**: `init_registry` 3.30 ms, `index_batch` n=1 4.12 ms, `index_batch` n=50 36.27 ms (0.73 ms/CID amortised — 5.6× win over serial), `index_batch` n=1 with 51 prior entries 51.74 ms (state-dependent re-encode cost). Full methodology + observations in [`docs/BENCHMARKS.md`](BENCHMARKS.md). |
 
 ## Supportability
 
