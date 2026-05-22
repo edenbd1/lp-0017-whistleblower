@@ -27,18 +27,28 @@ Account-init tx_hash:     dd55dd1e5b754fb975f7b5e523bee1cc361aee78e56f904d1f152f
 Faucet (pinata) tx_hash:  40b7966dd494645d7eaa2669ccbd734e254aecf6a359160508c7ff42707476b4
 ```
 
-### On-chain tx hashes (public testnet)
+### On-chain tx hashes + explorer links (public testnet)
 
-| # | Instruction              | tx_hash                                                            |
-|---|--------------------------|--------------------------------------------------------------------|
-| 1 | `wallet auth-transfer init` (signer account) | `dd55dd1e5b754fb975f7b5e523bee1cc361aee78e56f904d1f152ff1747b97f0` |
-| 2 | `wallet pinata claim` (faucet → 150 tokens)  | `40b7966dd494645d7eaa2669ccbd734e254aecf6a359160508c7ff42707476b4` |
-| 3 | `wallet deploy-program`                       | `9e499b12781422f445d0e425f0b7499d4c975d3f96e12c9c0c35afb3dba48c8a` |
-| 4 | `spel init-registry`                          | `ae57ff1bf480c949af23a1ae53592abbe3c44240632364fce0dc7624e0b131d9` |
-| 5 | `spel index-batch` (n=1, real Logos Storage CID) | `1257c61c3ddff0ec083ef4756a81b28bc058ba55a11b147ef41ba3275edef55b` |
-| 6 | `spel index-batch` (n=50, synthetic CIDs)     | `2af12289409c55e8cee1ac172c35da518c0576e83a2ffaac7c8a67978209d531` |
+Every tx is independently verifiable on the public block explorer at
+**https://explorer.testnet.lez.logos.co** — click any link below.
 
-Every hash is verifiable against the public sequencer:
+| # | Instruction              | Explorer link |
+|---|--------------------------|---------------|
+| 1 | `wallet auth-transfer init` (signer account) | [`dd55dd1e…7b97f0`](https://explorer.testnet.lez.logos.co/transaction/dd55dd1e5b754fb975f7b5e523bee1cc361aee78e56f904d1f152ff1747b97f0) |
+| 2 | `wallet pinata claim` (faucet → 150 tokens)  | [`40b7966d…7476b4`](https://explorer.testnet.lez.logos.co/transaction/40b7966dd494645d7eaa2669ccbd734e254aecf6a359160508c7ff42707476b4) |
+| 3 | **`wallet deploy-program`**                  | [`9e499b12…48c8a`](https://explorer.testnet.lez.logos.co/transaction/9e499b12781422f445d0e425f0b7499d4c975d3f96e12c9c0c35afb3dba48c8a) |
+| 4 | **`spel init-registry`**                     | [`ae57ff1b…131d9`](https://explorer.testnet.lez.logos.co/transaction/ae57ff1bf480c949af23a1ae53592abbe3c44240632364fce0dc7624e0b131d9) |
+| 5 | **`spel index-batch` (n=1, real Logos Storage CID)** | [`1257c61c…ef55b`](https://explorer.testnet.lez.logos.co/transaction/1257c61c3ddff0ec083ef4756a81b28bc058ba55a11b147ef41ba3275edef55b) |
+| 6 | **`spel index-batch` (n=50, batch ceiling)**  | [`2af12289…9d531`](https://explorer.testnet.lez.logos.co/transaction/2af12289409c55e8cee1ac172c35da518c0576e83a2ffaac7c8a67978209d531) |
+
+**Accounts on the explorer**:
+
+- Registry PDA (6583 bytes of `Registry { entries: BTreeMap<…> }` state with 51 anchored CIDs):
+  https://explorer.testnet.lez.logos.co/account/A9ewyji3THdFGqLAtAd9GkoPX9B9R6yb5LZCfWLxbAeH
+- Signer / anchorer:
+  https://explorer.testnet.lez.logos.co/account/CbgR6tj5kWx5oziiFptM7jMvrQeYY3Mzaao6ciuhSr2r
+
+Every hash is also queryable via JSON-RPC:
 
 ```bash
 curl -sS -X POST https://testnet.lez.logos.co \

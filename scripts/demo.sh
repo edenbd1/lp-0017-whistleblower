@@ -49,6 +49,7 @@ require_bin() {
 banner "LP-0017 demo  —  RISC0_DEV_MODE=${RISC0_DEV_MODE}"
 echo "▶ NETWORK      = public LEZ testnet (https://testnet.lez.logos.co)"
 echo "▶ SEQUENCER    = ${SEQUENCER_URL}"
+echo "▶ EXPLORER     = https://explorer.testnet.lez.logos.co"
 echo "▶ CONFIG       = ${CONFIG}"
 echo "▶ PROGRAM_ID   = ${PROGRAM_ID}"
 echo "▶ REGISTRY PDA = Public/${REGISTRY_PDA}"
@@ -110,6 +111,11 @@ verify_tx "deploy        " "$DEPLOY_TX"
 verify_tx "init_registry " "$INIT_TX"
 verify_tx "index_batch n=1 " "$INDEX1_TX"
 verify_tx "index_batch n=50" "$INDEX50_TX"
+echo
+info "Browse on the public explorer:"
+info "  https://explorer.testnet.lez.logos.co/transaction/${DEPLOY_TX}"
+info "  https://explorer.testnet.lez.logos.co/transaction/${INDEX50_TX}"
+info "  https://explorer.testnet.lez.logos.co/account/${REGISTRY_PDA}"
 
 # ─── 4. Read the registry PDA back ────────────────────────────────────
 step "[4/6] Read the registry PDA via batch-anchor"
