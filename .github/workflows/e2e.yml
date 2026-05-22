@@ -9,13 +9,15 @@ name: e2e
 # (see docs/recon.md). Ours actually exercises the live path.
 
 on:
-  # Manual + nightly only — the e2e tier needs the LEZ git deps
-  # (spel, wallet, sequencer) which are not always reachable from CI
-  # runners. Running on every push spams red-X notifications without
-  # adding signal. Manual dispatch covers the pre-submission check;
-  # nightly catches devnet regressions.
-  schedule:
-    - cron: '17 3 * * *'    # nightly UTC
+  # Manual dispatch only for now. The LEZ git deps (spel + wallet
+  # building from source with the right toolchain pin) are not yet
+  # reliably reachable from a generic GitHub runner — every nightly
+  # run was red-X. Once docs/DEPLOYMENT.md lands and we have a
+  # devnet to point at, re-enable the schedule block below to start
+  # nightly regression checks.
+  #
+  # schedule:
+  #   - cron: '17 3 * * *'    # nightly UTC
   workflow_dispatch:
 
 env:
