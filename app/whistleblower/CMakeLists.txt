@@ -18,6 +18,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(DEFINED ENV{LOGOS_MODULE_BUILDER_ROOT})
     include($ENV{LOGOS_MODULE_BUILDER_ROOT}/cmake/LogosModule.cmake)
 
+    # The framework's logos_module() only pulls Qt6::Core +
+    # RemoteObjects. Our plugin embeds QML via QQuickWidget so we
+    # need a richer set of Qt modules. Find them up-front and pass
+    # via LINK_TARGETS so the framework wires them into the plugin
+    # target (including PUBLIC include paths for AUTOMOC).
+    find_package(Qt6 REQUIRED COMPONENTS
+        Widgets Quick QuickWidgets Qml Concurrent Gui Network OpenGL)
+    # The SDK transitively pulls these but doesn't propagate the
+    # include directories to consumers — we re-find them so the
+    # imported targets are available for LINK_TARGETS below.
+    find_package(nlohmann_json REQUIRED)
+    find_package(OpenSSL REQUIRED)
+    # Boost 1.90+ uses BoostConfig.cmake — Boost::system rather than
+    # FindBoost.cmake's COMPONENTS arg. Try the modern form first.
+    find_package(Boost CONFIG REQUIRED)
+
     # Keep module.json in sync with metadata.json on every configure —
     # the lambda-prize validation bot looks for the former, but the
     # Basecamp package_manager reads the latter.
@@ -30,8 +46,19 @@ if(DEFINED ENV{LOGOS_MODULE_BUILDER_ROOT})
                 src/plugin.cpp
                 src/backend.h
                 src/backend.cpp
-        QML     qml/Main.qml
         EXTERNAL_LIBS lp0017_ffi
+        LINK_TARGETS Qt6::Widgets Qt6::Quick Qt6::QuickWidgets
+                     Qt6::Qml Qt6::Concurrent Qt6::Gui Qt6::Network Qt6::OpenGL
+                     nlohmann_json::nlohmann_json
+                     OpenSSL::SSL Boost::system
+    )
+
+    # Compile the QML resource into the plugin target. The framework
+    # cmake doesn't have first-class QML handling so we wire it here.
+    qt_add_resources(whistleblower_module_plugin "qml"
+        PREFIX "/qml"
+        BASE "qml"
+        FILES qml/Main.qml
     )
 
 else()

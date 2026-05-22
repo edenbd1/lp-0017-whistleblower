@@ -63,3 +63,4 @@ storage-data/
 # Match both the directory form and a symlink at the root.
 _external
 _external/
+*.lgx
