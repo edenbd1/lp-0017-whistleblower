@@ -64,3 +64,4 @@ storage-data/
 _external
 _external/
 *.lgx
+app/whistleblower/lib/
