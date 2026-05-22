@@ -17,94 +17,153 @@
 #![no_main]
 
 use spel_framework::prelude::*;
+use nssa_core::account::Data;
+
+use registry_core::{CidRecord, Registry, MAX_BATCH};
+
 risc0_zkvm::guest::entry!(main);
 
-use registry_core::{
-    validate_batch, CidRecord, Registry, RegistryError, MAX_BATCH,
-};
+// Error codes are mirrored from registry_core::RegistryError so the
+// guest doesn't need to depend on the std-only error enum.
+const E_INVALID_HASH:   u32 = 1;
+const E_BAD_TIMESTAMP:  u32 = 2;
+const E_BATCH_EMPTY:    u32 = 3;
+const E_BATCH_TOO_BIG:  u32 = 4;
+const E_REGISTRY_FULL:  u32 = 5;
+const E_ARITY_MISMATCH: u32 = 6;
 
 #[lez_program]
 mod whistleblower_registry {
+    #[allow(unused_imports)]
     use super::*;
 
-    /// Pulled into the IDL `accounts[]` so `spel inspect` can decode
-    /// the registry PDA without bespoke tooling.
-    #[account_type]
-    pub use registry_core::Registry as RegistryAccount;
-
-    /// Claim the registry PDA. The program is the owner; the signer
-    /// is the entity that pays for the account-init transaction
-    /// (anyone — the registry is permissionless).
+    /// Claim the registry PDA. The program owns it; the signer is the
+    /// entity paying for the account-init transaction (anyone — the
+    /// registry is permissionless). Double-init returns
+    /// `AccountAlreadyInitialized` (SpelError code 1002), which the
+    /// off-chain caller treats as a no-op success.
     #[instruction]
     pub fn init_registry(
-        ctx: ProgramContext,
-        #[account(init, pda = const("registry"))] registry: AccountWithMetadata,
-        #[account(signer)] payer: AccountWithMetadata,
+        #[account(init, pda = [literal("registry")])]
+        mut registry: AccountWithMetadata,
+        #[account(signer)]
+        payer: AccountWithMetadata,
     ) -> SpelResult {
-        let _ = ctx; // unused — the PDA seed is constant.
-        let initial = Registry::default();
-        let bytes = borsh::to_vec(&initial)
-            .map_err(|e| SpelError::custom(99, &format!("borsh encode: {e}")))?;
-        let mut registry = registry;
-        registry.account.data = bytes
-            .try_into()
-            .map_err(|_| SpelError::custom(99, "initial registry larger than DATA_MAX_LENGTH"))?;
+        let empty = Registry::default();
+        let bytes = borsh::to_vec(&empty).map_err(|e| SpelError::SerializationError {
+            message: e.to_string(),
+        })?;
+        registry.account.data = Data::try_from(bytes).map_err(|_| {
+            SpelError::custom(E_REGISTRY_FULL, "initial registry exceeds DATA_MAX_LENGTH".to_string())
+        })?;
         Ok(SpelOutput::execute(vec![registry, payer], vec![]))
     }
 
-    /// Append up to [`MAX_BATCH`] CIDs to the registry. Three parallel
-    /// vectors keep the SPEL IDL codegen happy (tuples and structs do
-    /// not survive IDL serialization).
+    /// Anchor a batch of CIDs.
+    ///
+    /// Three parallel vectors of equal length keep the SPEL IDL
+    /// codegen happy (tuples and structs do not survive the IDL JSON
+    /// schema). Duplicates are silently skipped — idempotency is
+    /// enforced inside the program, matching the spec's "re-anchoring
+    /// an already-registered CID does not fail" requirement.
+    ///
+    /// `anchor_timestamps` are u32 unix-seconds on the wire (the spel
+    /// CLI can serialize u32 natively but not i64); stored as i64.
     #[instruction]
     pub fn index_batch(
-        ctx: ProgramContext,
-        #[account(mut, pda = const("registry"), owner = ctx.self_program_id)]
-        registry: AccountWithMetadata,
-        #[account(signer)] anchorer: AccountWithMetadata,
+        #[account(mut, pda = [literal("registry")])]
+        mut registry: AccountWithMetadata,
+        #[account(signer)]
+        anchorer: AccountWithMetadata,
         cids: Vec<String>,
         metadata_hashes: Vec<[u8; 32]>,
         anchor_timestamps: Vec<u32>,
     ) -> SpelResult {
-        validate_batch(&cids, &metadata_hashes, &anchor_timestamps)
-            .map_err(map_err)?;
+        // 1. Validate the batch shape before touching state.
+        let n = cids.len();
+        if n == 0 {
+            return Err(SpelError::custom(E_BATCH_EMPTY, "batch is empty".to_string()));
+        }
+        if n > MAX_BATCH {
+            return Err(SpelError::custom(
+                E_BATCH_TOO_BIG,
+                format!("batch size {} > MAX_BATCH {}", n, MAX_BATCH),
+            ));
+        }
+        if metadata_hashes.len() != n || anchor_timestamps.len() != n {
+            return Err(SpelError::custom(
+                E_ARITY_MISMATCH,
+                format!(
+                    "cids={}, metadata_hashes={}, anchor_timestamps={} (must match)",
+                    n,
+                    metadata_hashes.len(),
+                    anchor_timestamps.len()
+                ),
+            ));
+        }
+        for ts in &anchor_timestamps {
+            if *ts == 0 {
+                return Err(SpelError::custom(
+                    E_BAD_TIMESTAMP,
+                    "timestamp must be non-zero".to_string(),
+                ));
+            }
+        }
 
-        let mut state: Registry = borsh::from_slice(&registry.account.data)
-            .map_err(|e| SpelError::custom(98, &format!("registry decode: {e}")))?;
+        // 2. Decode the current registry state.
+        let mut state: Registry =
+            borsh::from_slice(registry.account.data.as_ref()).map_err(|e| {
+                SpelError::SerializationError {
+                    message: format!("registry decode: {e}"),
+                }
+            })?;
 
+        // 3. Insert each new CID, silently skipping duplicates.
         let signer_key = *anchorer.account_id.value();
         for ((cid, hash), ts) in cids
             .into_iter()
             .zip(metadata_hashes.into_iter())
             .zip(anchor_timestamps.into_iter())
         {
-            let record = CidRecord::new(hash, ts as i64, signer_key);
-            // try_insert silently skips duplicates → idempotent batch.
-            state.try_insert(cid, record).map_err(map_err)?;
+            // contains_key short-circuit — idempotent re-anchor.
+            if state.contains(&cid) {
+                continue;
+            }
+            // Capacity gate.
+            if state.len() >= registry_core::MAX_ENTRIES {
+                return Err(SpelError::custom(
+                    E_REGISTRY_FULL,
+                    format!(
+                        "registry full (>= {} entries) — open a new program version",
+                        registry_core::MAX_ENTRIES
+                    ),
+                ));
+            }
+            state
+                .entries
+                .insert(cid, CidRecord::new(hash, ts as i64, signer_key));
         }
 
-        let bytes = borsh::to_vec(&state)
-            .map_err(|e| SpelError::custom(99, &format!("borsh encode: {e}")))?;
-        let mut registry = registry;
-        registry.account.data = bytes
-            .try_into()
-            .map_err(|_| SpelError::custom(99, "registry larger than DATA_MAX_LENGTH"))?;
+        // 4. Re-encode + write.
+        let new_bytes = borsh::to_vec(&state).map_err(|e| SpelError::SerializationError {
+            message: format!("registry re-encode: {e}"),
+        })?;
+        registry.account.data = Data::try_from(new_bytes).map_err(|_| {
+            SpelError::custom(E_REGISTRY_FULL, "post-write registry exceeds DATA_MAX_LENGTH".to_string())
+        })?;
+
         Ok(SpelOutput::execute(vec![registry, anchorer], vec![]))
     }
 }
 
-fn map_err(e: RegistryError) -> SpelError {
-    let name: &'static str = match e {
-        RegistryError::InvalidHash => "InvalidHash",
-        RegistryError::BadTimestamp => "BadTimestamp",
-        RegistryError::BatchEmpty => "BatchEmpty",
-        RegistryError::BatchTooBig => "BatchTooBig",
-        RegistryError::RegistryFull => "RegistryFull",
-        RegistryError::ArityMismatch => "ArityMismatch",
-    };
-    SpelError::custom(e.code(), name)
-}
-
-// Static assertion so a future bump of registry-core that lifts
-// MAX_BATCH past u32::MAX trips a compile error here instead of
-// silently truncating on the wire.
+// Sanity: any future bump of MAX_BATCH past u32::MAX trips a compile
+// error here instead of silently truncating on the wire.
 const _: () = assert!(MAX_BATCH <= u32::MAX as usize);
+
+// Silence unused_imports warnings in the host build (the imports are
+// used inside the #[lez_program] macro expansion).
+#[allow(dead_code)]
+fn _force_use_of_borsh() {
+    let _ = borsh::to_vec::<Registry>(&Registry::default());
+    let _: u32 = E_INVALID_HASH;
+}

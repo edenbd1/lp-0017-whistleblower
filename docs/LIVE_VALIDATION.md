@@ -139,6 +139,25 @@ INFO --once set; exiting after first flush
 | S16 — CI green on default branch | ✅ live ([Actions](https://github.com/edenbd1/lp-0017-whistleblower/actions/workflows/ci.yml)) |
 | S18 — Reproducible demo with `RISC0_DEV_MODE=0` | ✅ committed (`scripts/demo.sh`) |
 
+## Guest binary builds successfully
+
+`cargo risczero build --manifest-path methods/guest/Cargo.toml` produces a real RISC-V ELF:
+
+```
+ImageID: b904baea7e1adc245a6cd0802fb3c016eaf9bbcaec90989a9a51c75ac6064217
+ELF:     methods/guest/target/riscv32im-risc0-zkvm-elf/docker/whistleblower_registry.bin
+Size:    446 KB
+Time:    ~1m 25s (release profile, risc0-3.0.5 in-Docker)
+```
+
+The build process surfaced three real bugs that were fixed in the process:
+
+1. `ruint@1.18.0` requires rustc 1.90 but the Risc0 builder ships rustc 1.88-dev → pinned `ruint = "=1.17.0"` in `methods/guest/Cargo.toml`.
+2. `#[lez_program]` requires the dependent crate to depend on `serde` directly (the macro emits `serde` paths) → added `serde = { version = "1.0", features = ["derive"] }` to `methods/guest/Cargo.toml`.
+3. The expanded macro's `SpelError::custom(code, "..." )` form is ambiguous for `Into<String>` inference on rustc 1.88-dev → changed every `.into()` to `.to_string()` in our guest source.
+
+(All three are now documented as workarounds in `docs/BUGS_FILED.md` so a future maintainer can revert the patches when upstream lands fixes.)
+
 ## What this does NOT yet validate
 
 | Criterion | Why |

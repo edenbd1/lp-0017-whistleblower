@@ -13,6 +13,16 @@ This file tracks every upstream issue we noticed. Drafts are ready to file; fina
 | 2026-05-22 | `logos-co/spel` | [#183](https://github.com/logos-co/spel/issues/183) — scaffolded project uses wrong LEZ tag (`nssa_core` version mismatch) | Surfaces as `InvalidSignature` on the sequencer when `spel` + `wallet` + sequencer are built from different commits. We pin everything to `v0.2.0-rc3` / spel `v0.3.0` consistently to dodge this. |
 | 2026-05-22 | `logos-blockchain/logos-execution-zone` | (no public issue) — `cargo install` from `tag = "v0.2.0-rc3"` fails on macOS Apple Silicon during dependency resolution | The CI e2e job uses Linux runners, so this only blocks local dev on M-series Macs. Local devs can run against the docker-compose stack only (storage + delivery half) without the full LEZ. |
 
+## Guest-build papercuts encountered during live validation (workarounds in place)
+
+Surfaced while running `cargo risczero build --manifest-path methods/guest/Cargo.toml` on 2026-05-22. Each one is patched in our `methods/guest/Cargo.toml` or guest source with a comment pointing back here so the patch can be reverted when upstream fixes ship.
+
+| Symptom | Root cause | Our workaround |
+|---|---|---|
+| `error: rustc 1.88.0-dev is not supported by the following packages: ruint@1.18.0 requires rustc 1.90` | The Risc0 builder image (`risczero/risc0-guest-builder:r0.1.88.0`) ships rustc 1.88-dev. `ruint 1.18.0` bumped its `rust-version` to 1.90 in a recent point release. | Pinned `ruint = "=1.17.0"` in `methods/guest/Cargo.toml`. Would file as upstream issue on `ruint` repo, but the better fix is for the Risc0 builder image to bump its toolchain. |
+| `error[E0433]: failed to resolve: use of unresolved module or unlinked crate \`serde\`` | The `#[lez_program]` macro expansion emits `serde::de::DeserializeOwned` paths, requiring the consuming crate to depend on `serde` directly even when the user code doesn't import it. | Added `serde = { version = "1.0", features = ["derive"] }` to `methods/guest/Cargo.toml`. Worth filing as a SPEL docs request — "guest crates must depend on serde directly" is a non-obvious gotcha. |
+| `error[E0283]: type annotations needed` at `SpelError::custom(CODE, "lit".into())` | `SpelError::custom(code: u32, message: impl Into<String>)` + the macro-expanded call site combine to defeat type inference on rustc 1.88-dev. The compiler can't pick which `Into<String>` impl applies. | Replaced every `.into()` with `.to_string()` in our guest source. Worth filing as a SPEL improvement — `SpelError::custom` should take `&str` or `String` concretely, not `impl Into<String>`, to avoid this inference cliff. |
+
 ## Drafts ready to file (held pending user approval)
 
 ### Draft 1 — `logos-storage/logos-storage-nim`: add `/health` endpoint

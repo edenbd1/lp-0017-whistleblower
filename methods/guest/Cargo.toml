@@ -1,12 +1,17 @@
 # SPEL guest crate for the LP-0017 registry.
 #
-# Builds for `riscv32im-risc0-zkvm-elf` via `cargo risczero build` —
-# this is a separate workspace from the host crates so the RISC-V
-# target rustflags / panic strategy don't leak into the host build.
+# Builds for `riscv32im-risc0-zkvm-elf` via `cargo risczero build`.
+# Separate workspace from the host crates so the RISC-V target
+# rustflags / panic strategy don't leak into the host build.
 #
-# LEZ deps pinned to tag = "v0.2.0-rc3" because that's the only tag
-# `spel-framework v0.3.0` is compatible with (see docs/decisions/
-# 003-ci-with-sequencer.md §"Caching strategy").
+# LEZ deps pinned to tag = "v0.2.0-rc3"; SPEL pinned to v0.3.0 (the
+# release tagged for that LEZ rev — see docs/decisions/003-ci-with-
+# sequencer.md §"Version compatibility").
+#
+# `ruint = =1.17.0`: the risc0 builder image ships rustc 1.88.0-dev,
+# which is older than the rustc-version `ruint >= 1.18.0` declares.
+# Pinning to 1.17.0 keeps the build cleanly buildable on the upstream
+# Docker image.
 
 [workspace]
 
@@ -23,15 +28,23 @@ name = "whistleblower_registry"
 path = "src/bin/whistleblower_registry.rs"
 
 [dependencies]
-borsh         = { version = "1.5", features = ["derive"] }
-risc0-zkvm    = { version = "3.0.5", default-features = false, features = ["std"] }
+# SPEL upstream v0.3.0's #[lez_program] macro fails to compile with a
+# `SpelError::custom` type-inference ambiguity (E0283) on rustc 1.88-dev
+# inside the risc0 builder image. Until a fix lands upstream we use
+# Thompsonmina's `cli-vec-string` fork — the same branch the chronicle
+# module uses successfully (see docs/BUGS_FILED.md draft #3). When
+# upstream merges the fix, point this back at `tag = "v0.3.0"`.
+spel-framework = { git = "https://github.com/Thompsonmina/spel.git",                          branch = "cli-vec-string" }
+nssa_core      = { git = "https://github.com/logos-blockchain/logos-execution-zone.git",      tag = "v0.2.0-rc3" }
+risc0-zkvm     = { version = "=3.0.5", features = ["std"] }
 
-# Pulled in via git pin per the version-matrix in docs/decisions/003.
-spel-framework      = { git = "https://github.com/logos-co/spel.git",                                tag = "v0.3.0" }
-spel-framework-core = { git = "https://github.com/logos-co/spel.git",                                tag = "v0.3.0" }
-nssa_core           = { git = "https://github.com/logos-blockchain/logos-execution-zone.git",        tag = "v0.2.0-rc3", package = "nssa_core" }
+serde          = { version = "1.0", features = ["derive"] }
+borsh          = { version = "1.5", features = ["derive"] }
 
-registry-core = { path = "../../crates/registry-core", default-features = false }
+# See file-level comment for the ruint pin rationale.
+ruint          = "=1.17.0"
+
+registry-core  = { path = "../../crates/registry-core", default-features = false }
 
 [profile.release]
 opt-level     = 3
