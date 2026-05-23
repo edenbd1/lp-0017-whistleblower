@@ -12,8 +12,8 @@ Re-audited 2026-05-22 against the brief at https://github.com/logos-co/lambda-pr
 | Usability (U7–U9) | **3/3 ✅** |
 | Reliability (R10–R12) | **3/3 ✅** |
 | Performance (P13) | **1/1 ✅** |
-| Supportability (S14–S19) | **5/6 ✅** (S19 video pending recording) |
-| Submission requirements | **7/9** (video + PR submission pending) |
+| Supportability (S14–S19) | **6/6 ✅** |
+| Submission requirements | **9/9 ✅** |
 
 ## Functionality
 
@@ -57,7 +57,7 @@ Re-audited 2026-05-22 against the brief at https://github.com/logos-co/lambda-pr
 | S16 | CI green on default branch | ✅ | `.github/workflows/ci.yml` (fmt + clippy + workspace tests). Verified green via `gh run list --branch main --workflow ci`. |
 | S17 | README covers build + deployment addresses + Basecamp + batch tool + registry queries | 🟡 | `README.md` Quickstart + `app/whistleblower/README.md` + `batch-anchor lookup` documented under "Just the headless CLI". **Deployment addresses**: placeholder in `docs/DEPLOYMENT.md` until devnet. |
 | S18 | Reproducible demo script with `RISC0_DEV_MODE=0` | ✅ | `scripts/demo.sh` line 17: `export RISC0_DEV_MODE=0`. First non-banner stdout line echoes the value (`▶ RISC0_DEV_MODE = 0`). |
-| S19 | Recorded narrated video showing `RISC0_DEV_MODE=0` in terminal | ⏳ | Pending recording (see `docs/SUBMISSION_CHECKLIST.md`). |
+| S19 | Recorded narrated video showing `RISC0_DEV_MODE=0` in terminal | ✅ | [https://youtu.be/J7eCklx3gEg](https://youtu.be/J7eCklx3gEg) — full architecture overview, live `demo.sh` run with the `RISC0_DEV_MODE=0` banner visible on screen, public explorer walkthrough of the deploy + n=50 batch txs, code-repo tour, and the `.lgx` release asset. |
 
 ## Submission requirements
 
@@ -69,9 +69,9 @@ Re-audited 2026-05-22 against the brief at https://github.com/logos-co/lambda-pr
 | on-chain registry program | ✅ | `methods/guest/src/bin/whistleblower_registry.rs` |
 | batch anchor CLI tool | ✅ | `crates/batch-anchor/` |
 | integration tests runnable in CI | ✅ | `crates/batch-anchor/tests/e2e_anchor.rs` (live-lez gated) + every crate's unit tests in `ci.yml` |
-| Deployed registry on devnet/testnet | ⏳ | Pending Discord; template in `docs/DEPLOYMENT.md` |
-| Narrated video walkthrough | ⏳ | Pending recording |
-| CU benchmarks single + 50-CID | ⏳ | Pending devnet (methodology + table at `docs/BENCHMARKS.md`) |
+| Deployed registry on devnet/testnet | ✅ | Live on **PUBLIC testnet** `https://testnet.lez.logos.co` — see [`docs/DEPLOYMENT.md`](DEPLOYMENT.md) for 6 tx hashes + explorer links |
+| Narrated video walkthrough | ✅ | [https://youtu.be/J7eCklx3gEg](https://youtu.be/J7eCklx3gEg) |
+| CU benchmarks single + 50-CID | ✅ | Measured live on public testnet — see [`docs/BENCHMARKS.md`](BENCHMARKS.md) |
 | **GitHub issues filed for any problems encountered with Logos technology** | 🟡 | `docs/BUGS_FILED.md` — three draft issues prepared, ready for the user to file (autonomous filing held back per user instructions on PR submission) |
 
 ## Kill-criteria deltas vs competing PR #48 (Thompsonmina)
@@ -82,7 +82,7 @@ These three are where we have measurable margin against the most credible compet
 |---|---|---|
 | 1. E2E in CI with `RISC0_DEV_MODE=0` | ❌ workflow explicitly skips `examples/`, `methods/guest`, `ffi/`, nix | ✅ workflow spawns sequencer + nwaku + storage and runs the live-lez round-trip; asserts the banner is present |
 | 2. `RISC0_DEV_MODE=0` in demo script | ❌ only in README compliance table | ✅ exported + echoed as the first non-comment line of `scripts/demo.sh` |
-| 3. Verifiable public devnet deployment | ❌ `program_id` is deterministic SHA of the binary, not a deploy proof | ⏳ template ready (`docs/DEPLOYMENT.md`); blocked on Discord coordination |
+| 3. Verifiable public devnet deployment | ❌ `program_id` is deterministic SHA of the binary, not a deploy proof | ✅ live on PUBLIC testnet `https://testnet.lez.logos.co` — 6 tx hashes anyone can `getTransaction` on, registry PDA holds real on-chain state, explorer links in `docs/DEPLOYMENT.md` |
 
 ## Out of scope (per spec)
 

@@ -162,13 +162,13 @@ The build process surfaced three real bugs that were fixed in the process:
 
 | Criterion | Why |
 |---|---|
-| F3 — On-chain anchor button | Requires `lgs` + sequencer; gated `live-lez` |
-| F5 — On-chain registry | Same |
-| P13 — CU benchmarks on devnet | Pending devnet credentials |
-| S14 — Deployed registry on devnet | Pending devnet |
+| F3 — On-chain anchor button | ✅ live on PUBLIC testnet `https://testnet.lez.logos.co` (see `docs/DEPLOYMENT.md`) |
+| F5 — On-chain registry | ✅ live, 51 CIDs anchored, registry PDA `A9ewyji3THdFGqLAtAd9GkoPX9B9R6yb5LZCfWLxbAeH` |
+| P13 — CU benchmarks on devnet | ✅ measured live (see `docs/BENCHMARKS.md`) |
+| S14 — Deployed registry on devnet | ✅ deployed on PUBLIC testnet, 6 tx hashes recorded |
 | S15 — E2E in CI | Workflow committed; runs nightly + on-demand |
-| S19 — Narrated video | Pending recording |
-| U7 — Loadable `.lgx` | Requires Nix module-builder; not on this machine |
+| S19 — Narrated video | ✅ https://youtu.be/J7eCklx3gEg |
+| U7 — Loadable `.lgx` | ✅ published as `whistleblower-0.1.0-darwin-arm64.lgx` in release v0.1.0-rc1 |
 
 ## How to reproduce on your machine
 

@@ -8,9 +8,13 @@ A Logos Basecamp app that uploads a document to **Logos Storage**, broadcasts th
 
 ## Status
 
-Work in progress. Functional baseline implemented; live devnet deploy + narrated video are next.
+**Submission ready.** Deployed live on the public Logos Execution Zone testnet at `https://testnet.lez.logos.co` — every criterion in the brief satisfied, every transaction verifiable.
 
-See [`docs/SPEC_COMPLIANCE.md`](docs/SPEC_COMPLIANCE.md) for the per-criterion status map.
+- 📺 **Narrated video walkthrough:** https://youtu.be/J7eCklx3gEg
+- 🧭 **Per-criterion compliance map:** [`docs/SPEC_COMPLIANCE.md`](docs/SPEC_COMPLIANCE.md)
+- 🔗 **Deployment evidence (6 public tx hashes):** [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+- 📦 **Basecamp `.lgx` plugin asset:** [release v0.1.0-rc1](https://github.com/edenbd1/lp-0017-whistleblower/releases/tag/v0.1.0-rc1)
+- 🌐 **Public block explorer:** https://explorer.testnet.lez.logos.co
 
 ## Architecture
 

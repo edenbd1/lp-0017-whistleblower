@@ -65,3 +65,5 @@ _external
 _external/
 *.lgx
 app/whistleblower/lib/
+VIDEO_SCRIPT.md
+VIDEO_SCRIPT.pdf
