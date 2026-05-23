@@ -16,7 +16,7 @@ url = "http://127.0.0.1:18080"
 sequencer_url     = "http://127.0.0.1:3040"
 # 64-hex form of the ImageID — matches what `spel inspect` prints.
 program_id        = "b904baea7e1adc245a6cd0802fb3c016eaf9bbcaec90989a9a51c75ac6064217"
-idl_path          = "./idl/whistleblower_registry.json"
+idl_path          = "./idl/whistleblower_registry.idl.json"
 # CbgR... is one of the preconfigured public accounts in LEZ's debug
 # wallet. Both preconfigured signers ship with testnet tokens.
 signer_account_id = "CbgR6tj5kWx5oziiFptM7jMvrQeYY3Mzaao6ciuhSr2r"

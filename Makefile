@@ -33,8 +33,8 @@ stack-down: ## Stop the local nwaku + storage stack
 	docker compose -f infra/docker-compose.yml down
 
 idl: ## Regenerate the SPEL IDL from the guest source
-	spel generate-idl methods/guest/src/bin/whistleblower_registry.rs > idl/whistleblower_registry.json
-	@jq '.name, (.instructions | length)' idl/whistleblower_registry.json
+	spel generate-idl methods/guest/src/bin/whistleblower_registry.rs > idl/whistleblower_registry.idl.json
+	@jq '.name, (.instructions | length)' idl/whistleblower_registry.idl.json
 
 deploy: ## Build the guest + deploy + print the program_id
 	bash scripts/deploy.sh

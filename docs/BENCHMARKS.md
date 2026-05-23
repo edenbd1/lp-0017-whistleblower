@@ -61,9 +61,9 @@ export NSSA_WALLET_HOME_DIR=~/logos/src/logos-execution-zone/wallet/configs/debu
 PAYER=CbgR6tj5kWx5oziiFptM7jMvrQeYY3Mzaao6ciuhSr2r
 GUEST=methods/guest/target/riscv32im-risc0-zkvm-elf/docker/whistleblower_registry.bin
 
-spel --idl idl/whistleblower_registry.json -p "$GUEST" -- \
+spel --idl idl/whistleblower_registry.idl.json -p "$GUEST" -- \
      init-registry --payer "$PAYER"
-spel --idl idl/whistleblower_registry.json -p "$GUEST" -- \
+spel --idl idl/whistleblower_registry.idl.json -p "$GUEST" -- \
      index-batch --cids zCID01 --metadata-hashes "$(printf '%064x\n' 1)" \
      --anchor-timestamps $(date +%s) --anchorer "$PAYER"
 

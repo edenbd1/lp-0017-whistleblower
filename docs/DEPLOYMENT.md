@@ -129,11 +129,11 @@ wallet deploy-program \
   methods/guest/target/riscv32im-risc0-zkvm-elf/docker/whistleblower_registry.bin
 
 # Init + anchor — capture tx_hashes from stdout
-spel --idl idl/whistleblower_registry.json \
+spel --idl idl/whistleblower_registry.idl.json \
      -p methods/guest/target/riscv32im-risc0-zkvm-elf/docker/whistleblower_registry.bin \
      -- init-registry --payer "$PAYER"
 
-spel --idl idl/whistleblower_registry.json \
+spel --idl idl/whistleblower_registry.idl.json \
      -p methods/guest/target/riscv32im-risc0-zkvm-elf/docker/whistleblower_registry.bin \
      -- index-batch \
         --cids zDvZRwzm7MKZ33DbgqaDFZgXCkUyf4gsejrqtiTZWBagWZ1WZwDg \

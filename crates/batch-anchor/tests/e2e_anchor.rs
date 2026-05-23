@@ -56,7 +56,7 @@ fn build_config() -> Option<Config> {
         registry: RegistrySection {
             sequencer_url,
             program_id,
-            idl_path: "./idl/whistleblower_registry.json".into(),
+            idl_path: "./idl/whistleblower_registry.idl.json".into(),
             signer_account_id: std::env::var("SIGNER_ACCOUNT_ID")
                 .unwrap_or_else(|_| "CbgR6tj5kWx5oziiFptM7jMvrQeYY3Mzaao6ciuhSr2r".into()),
             lgs_bin: None,

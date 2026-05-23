@@ -19,7 +19,7 @@ Hand-off document for the user. Captures what's done, what's left, and the exact
 - [x] All docs: README, recon, design, 3 ADRs, SPEC_COMPLIANCE, DEPLOYMENT, BENCHMARKS, BUGS_FILED
 - [x] Makefile + .editorconfig
 - [x] `batch-anchor.toml.example`
-- [x] `idl/whistleblower_registry.json` placeholder
+- [x] `idl/whistleblower_registry.idl.json` placeholder
 - [x] Dual MIT + Apache-2.0 licence
 
 ## ⏳ Manual steps required before filing the PR

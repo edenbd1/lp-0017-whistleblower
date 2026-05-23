@@ -79,7 +79,7 @@ impl Default for RegistrySection {
         Self {
             sequencer_url: "http://127.0.0.1:3040".into(),
             program_id: "".into(),
-            idl_path: "./idl/whistleblower_registry.json".into(),
+            idl_path: "./idl/whistleblower_registry.idl.json".into(),
             signer_account_id: "".into(),
             lgs_bin: None,
         }

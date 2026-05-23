@@ -30,7 +30,7 @@ WALLET_PASSWORD="${WALLET_PASSWORD:-test}"
 STATE_FILE="${STATE_FILE:-.demo-state}"
 TOPIC="/whistleblower/1/document-broadcast/json"
 GUEST_BIN="methods/guest/target/riscv32im-risc0-zkvm-elf/docker/whistleblower_registry.bin"
-IDL="idl/whistleblower_registry.json"
+IDL="idl/whistleblower_registry.idl.json"
 
 # Pick a preconfigured signer — LEZ's standalone-mode debug wallet
 # ships with two pre-funded public accounts.
