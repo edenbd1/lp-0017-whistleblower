@@ -8,13 +8,31 @@ A Logos Basecamp app that uploads a document to **Logos Storage**, broadcasts th
 
 ## Status
 
-**Submission ready.** Deployed live on the public Logos Execution Zone testnet at `https://testnet.lez.logos.co` — every criterion in the brief satisfied, every transaction verifiable.
+**✅ Submission ready — deployed live on the public Logos Execution Zone testnet.**
+
+- Sequencer: `https://testnet.lez.logos.co`
+- Block explorer: `https://explorer.testnet.lez.logos.co`
+- Registry PDA: [`A9ewyji3THdFGqLAtAd9GkoPX9B9R6yb5LZCfWLxbAeH`](https://explorer.testnet.lez.logos.co/account/A9ewyji3THdFGqLAtAd9GkoPX9B9R6yb5LZCfWLxbAeH) — holds 51 anchored CIDs in 6583 bytes (Borsh-encoded, exactly `4 + 51 × 129`)
+- ProgramId (hex): `b904baea7e1adc245a6cd0802fb3c016eaf9bbcaec90989a9a51c75ac6064217`
+
+**6 public on-chain transactions — each independently verifiable via `getTransaction` JSON-RPC or by clicking the explorer link:**
+
+| # | Instruction | Explorer link |
+|---|---|---|
+| 1 | `wallet auth-transfer init` (signer account) | [`dd55dd1e…7b97f0`](https://explorer.testnet.lez.logos.co/transaction/dd55dd1e5b754fb975f7b5e523bee1cc361aee78e56f904d1f152ff1747b97f0) |
+| 2 | `wallet pinata claim` (faucet → 150 tokens) | [`40b7966d…7476b4`](https://explorer.testnet.lez.logos.co/transaction/40b7966dd494645d7eaa2669ccbd734e254aecf6a359160508c7ff42707476b4) |
+| 3 | **`wallet deploy-program`** | [`9e499b12…48c8a`](https://explorer.testnet.lez.logos.co/transaction/9e499b12781422f445d0e425f0b7499d4c975d3f96e12c9c0c35afb3dba48c8a) |
+| 4 | **`spel init-registry`** | [`ae57ff1b…131d9`](https://explorer.testnet.lez.logos.co/transaction/ae57ff1bf480c949af23a1ae53592abbe3c44240632364fce0dc7624e0b131d9) |
+| 5 | **`spel index_batch` n=1** (real Logos Storage CID) | [`1257c61c…ef55b`](https://explorer.testnet.lez.logos.co/transaction/1257c61c3ddff0ec083ef4756a81b28bc058ba55a11b147ef41ba3275edef55b) |
+| 6 | **`spel index_batch` n=50** (50 CIDs anchored atomically) | [`2af12289…9d531`](https://explorer.testnet.lez.logos.co/transaction/2af12289409c55e8cee1ac172c35da518c0576e83a2ffaac7c8a67978209d531) |
+
+Quick links:
 
 - 📺 **Narrated video walkthrough:** https://youtu.be/J7eCklx3gEg
 - 🧭 **Per-criterion compliance map:** [`docs/SPEC_COMPLIANCE.md`](docs/SPEC_COMPLIANCE.md)
-- 🔗 **Deployment evidence (6 public tx hashes):** [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+- 🔗 **Full deployment record:** [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+- 📊 **CU benchmarks (measured live on this testnet):** [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)
 - 📦 **Basecamp `.lgx` plugin asset:** [release v0.1.0-rc1](https://github.com/edenbd1/lp-0017-whistleblower/releases/tag/v0.1.0-rc1)
-- 🌐 **Public block explorer:** https://explorer.testnet.lez.logos.co
 
 ## Architecture
 
