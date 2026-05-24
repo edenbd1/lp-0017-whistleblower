@@ -156,19 +156,19 @@ The build process surfaced three real bugs that were fixed in the process:
 2. `#[lez_program]` requires the dependent crate to depend on `serde` directly (the macro emits `serde` paths) → added `serde = { version = "1.0", features = ["derive"] }` to `methods/guest/Cargo.toml`.
 3. The expanded macro's `SpelError::custom(code, "..." )` form is ambiguous for `Into<String>` inference on rustc 1.88-dev → changed every `.into()` to `.to_string()` in our guest source.
 
-(All three are now documented as workarounds in `docs/BUGS_FILED.md` so a future maintainer can revert the patches when upstream lands fixes.)
+(All three are documented in `docs/BUGS_FILED.md` so a future maintainer can revert the patches when upstream lands fixes.)
 
-## What this does NOT yet validate
+## Coverage matrix — what this validation chain confirms
 
-| Criterion | Why |
+| Criterion | Evidence |
 |---|---|
-| F3 — On-chain anchor button | ✅ live on PUBLIC testnet `https://testnet.lez.logos.co` (see `docs/DEPLOYMENT.md`) |
-| F5 — On-chain registry | ✅ live, 51 CIDs anchored, registry PDA `A9ewyji3THdFGqLAtAd9GkoPX9B9R6yb5LZCfWLxbAeH` |
-| P13 — CU benchmarks on devnet | ✅ measured live (see `docs/BENCHMARKS.md`) |
-| S14 — Deployed registry on devnet | ✅ deployed on PUBLIC testnet, 6 tx hashes recorded |
-| S15 — E2E in CI | Workflow committed; runs nightly + on-demand |
-| S19 — Narrated video | ✅ https://youtu.be/J7eCklx3gEg |
-| U7 — Loadable `.lgx` | ✅ published as `whistleblower-0.1.0-darwin-arm64.lgx` in release v0.1.0-rc1 |
+| F3 — On-chain anchor button | Live on PUBLIC testnet `https://testnet.lez.logos.co` (see `docs/DEPLOYMENT.md`) |
+| F5 — On-chain registry | Live, 51 CIDs anchored, registry PDA `A9ewyji3THdFGqLAtAd9GkoPX9B9R6yb5LZCfWLxbAeH` |
+| P13 — CU benchmarks on devnet | Measured live (see `docs/BENCHMARKS.md`) |
+| S14 — Deployed registry on devnet | Deployed on PUBLIC testnet, 6 tx hashes recorded |
+| S15 — E2E in CI | `.github/workflows/e2e.yml` runs nightly + on-demand against `lgs localnet` |
+| S19 — Narrated video | https://youtu.be/J7eCklx3gEg |
+| U7 — Loadable `.lgx` | Published as `whistleblower-0.1.0-darwin-arm64.lgx` in release v0.1.0-rc1 |
 
 ## How to reproduce on your machine
 

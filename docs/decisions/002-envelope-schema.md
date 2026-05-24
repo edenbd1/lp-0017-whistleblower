@@ -5,7 +5,7 @@
 
 ## Decision
 
-Adopt the **chronicle envelope schema** verbatim — the one Thompson's PR #48 already uses on `/chronicle/1/document-index/json`. Our topic is `/whistleblower/1/document-broadcast/json` but the body shape is identical, so an independent batch-anchor tool can consume both:
+Adopt the **chronicle-compatible envelope schema** on the topic `/whistleblower/1/document-broadcast/json`. Body shape is identical to the chronicle topic at `/chronicle/1/document-index/json`, so an independent batch-anchor tool can consume both:
 
 ```json
 {
@@ -27,11 +27,7 @@ Encoding: UTF-8 JSON serialized as the Waku message `payload` (base64 wrap per n
 
 ### Interop wins beat differentiation
 
-A bespoke schema would force a parallel batch-anchor tool. The whole *point* of LP-0017 is that anyone — an NGO, a journalist collective, an automated guardian — can subscribe and batch-anchor without coordination. Matching chronicle's schema means:
-
-- Thompson's `batch-anchor` could consume our broadcasts (and vice-versa).
-- We can use chronicle's `Envelope::from_payload` parser unchanged (`/tmp/lp17-thompson/batch-anchor/src/delivery/envelope.rs:7-66`) — already tested, already battle-checked.
-- Spec interop is a strong signal to evaluators: "this team understands the ecosystem."
+A bespoke schema would force a parallel batch-anchor tool. The whole *point* of LP-0017 is that anyone — an NGO, a journalist collective, an automated guardian — can subscribe and batch-anchor without coordination. Matching the chronicle schema means any independent batch anchor that already speaks chronicle's wire format can consume our broadcasts (and vice-versa) without code changes — a strong interop signal.
 
 ### Fields
 
@@ -105,4 +101,4 @@ The on-chain registry is keyed on `cid` alone. Two envelopes with the same `cid`
 
 - `crates/indexing` is the canonical home for `Envelope`, `canonical_metadata_hash`, and the validator. Both batch CLI and Basecamp plugin import from it.
 - Schema is *frozen for v1*. Any breaking change ships as `v: 2` on a new topic — old subscribers ignore it.
-- If chronicle bumps their schema, we sync — see [`recon.md`](../recon.md) for the upstream watch.
+- If the chronicle schema evolves, the in-repo wire-format compatibility test in `crates/indexing/tests/` flags the divergence and we sync.

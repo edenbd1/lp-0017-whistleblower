@@ -2,20 +2,18 @@
 //!
 //! Why shell-out and not direct linking: linking to `nssa_core` +
 //! `spel-framework` pulls in multi-GB Risc0 circuits and a strict LEZ
-//! tag pin. Shelling out is portable and matches Thompson's pattern.
+//! tag pin. Shelling out keeps the binary portable.
 //!
 //! All real on-chain interaction goes through `spel --idl <FILE> -p
 //! <BIN> -- <instruction> ...`. The wallet password (if any) is read
 //! from `$WALLET_PASSWORD` and fed via a pty — see [`pty_spawn`].
 //!
-//! Note on the spel CLI's `Vec<String>` ABI: until commit `fbbffd3`
-//! lands upstream, only the Thompsonmina/spel cli-vec-string fork
-//! actually parses multiple `--cids`. The fork uses **flag
-//! repetition** (`--cids a --cids b --cids c`), not the CSV form
-//! documented in chronicle's README. We pass cids via repetition;
-//! `metadata_hashes` and `anchor_timestamps` use the CSV form because
-//! `Vec<[u8;32]>` and `Vec<u32>` are already correctly parsed
-//! upstream.
+//! Note on the spel CLI's `Vec<String>` ABI: the `cli-vec-string` fork
+//! pinned in `methods/guest/Cargo.toml` parses multiple `--cids` via
+//! flag repetition (`--cids a --cids b --cids c`) rather than CSV.
+//! We pass cids via repetition; `metadata_hashes` and
+//! `anchor_timestamps` use the CSV form (`Vec<[u8;32]>` and
+//! `Vec<u32>` are already parsed in CSV upstream).
 
 use async_trait::async_trait;
 use indexing::{IndexingError, IndexingResult, RegistryClient};
@@ -69,8 +67,8 @@ impl ShellOutRegistry {
     /// pda registry` to compute it. Falls back to an empty string when
     /// the spel binary isn't on PATH (host-only test runs).
     ///
-    /// The output format on Thompson's spel fork is just a bare line
-    /// with the base58 PDA — no prefix. Older versions print
+    /// The output format on the pinned spel fork is a bare line with
+    /// the base58 PDA — no prefix. Older versions print
     /// `registry → <PDA>`. Accept both.
     pub fn pda_address(&self) -> IndexingResult<String> {
         let out = std::process::Command::new(&self.spel_bin)
@@ -99,7 +97,7 @@ impl ShellOutRegistry {
                     return Ok(cand);
                 }
             }
-            // Bare base58 line — Thompson's fork output.
+            // Bare base58 line — current spel fork output format.
             if is_base58_likely(line) {
                 return Ok(line.to_string());
             }
@@ -226,7 +224,8 @@ impl RegistryClient for ShellOutRegistry {
             "--".into(),
             "index-batch".into(),
         ];
-        // Flag repetition for Vec<String> per Thompson fork's commit fbbffd3.
+        // Flag repetition is the Vec<String> parsing form on the pinned spel
+        // fork (commit fbbffd3 — see methods/guest/Cargo.toml + BUGS_FILED.md).
         for cid in cids {
             args.push("--cids".into());
             args.push(cid.clone());

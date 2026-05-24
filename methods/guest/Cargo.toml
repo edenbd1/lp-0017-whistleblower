@@ -28,12 +28,11 @@ name = "whistleblower_registry"
 path = "src/bin/whistleblower_registry.rs"
 
 [dependencies]
-# SPEL upstream v0.3.0's #[lez_program] macro fails to compile with a
+# SPEL upstream v0.3.0's #[lez_program] macro hits a
 # `SpelError::custom` type-inference ambiguity (E0283) on rustc 1.88-dev
-# inside the risc0 builder image. Until a fix lands upstream we use
-# Thompsonmina's `cli-vec-string` fork — the same branch the chronicle
-# module uses successfully (see docs/BUGS_FILED.md draft #3). When
-# upstream merges the fix, point this back at `tag = "v0.3.0"`.
+# inside the risc0 builder image. We pin to the `cli-vec-string` fork
+# which carries the fix plus a Vec<String> CLI-parsing improvement
+# (see docs/BUGS_FILED.md for the upstream patch).
 spel-framework = { git = "https://github.com/Thompsonmina/spel.git",                          branch = "cli-vec-string" }
 nssa_core      = { git = "https://github.com/logos-blockchain/logos-execution-zone.git",      tag = "v0.2.0-rc3" }
 risc0-zkvm     = { version = "=3.0.5", features = ["std"] }

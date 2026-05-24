@@ -103,8 +103,8 @@ git clone https://github.com/logos-blockchain/logos-blockchain.git
 git clone https://github.com/logos-blockchain/logos-execution-zone.git
 cd logos-execution-zone && git checkout v0.2.0-rc3
 cargo install --path wallet --force
-# spel: Thompson's cli-vec-string fork until the Vec<String> flag-repetition
-# patch lands in logos-co/spel (see docs/BUGS_FILED.md).
+# spel: a fork that adds Vec<String> flag-repetition CLI parsing
+# (see docs/BUGS_FILED.md for the upstream patch we filed).
 cargo install --git https://github.com/Thompsonmina/spel.git --branch cli-vec-string spel
 
 # macOS arm64 only: patch wallet's rpath for Python3.framework
@@ -153,15 +153,14 @@ before promoting to the public testnet. Same program_id (since
 program_id is a deterministic hash of the guest binary). See git
 history for the local-only deployment record.
 
-## Why this is a stronger deployment proof than competing PRs
+## Deployment evidence
 
-Competing PR #48 (Thompsonmina) pins a `program_id` derived from the
-binary hash as evidence of deployment. That's a *build-time*
-identity — same hash on every machine building the same source,
-whether or not a deploy transaction was ever submitted.
-
-This file goes further: every action above is paired with a real
-public-testnet `tx_hash` queryable via
-`https://testnet.lez.logos.co`'s JSON-RPC. The whole audit chain —
-account init → faucet → deploy → init_registry → index_batch — is
-independently reproducible by any third party with the recipe above.
+Every action above is paired with a real public-testnet `tx_hash`
+queryable via `https://testnet.lez.logos.co`'s JSON-RPC and visible
+on the public block explorer at `https://explorer.testnet.lez.logos.co`.
+The whole audit chain — account init → faucet → deploy → init_registry
+→ index_batch — is independently reproducible by any third party with
+the recipe above. `program_id` is a deterministic hash of the guest
+binary, so anyone running `cargo risczero build` against the committed
+source obtains the same `program_id` that the deployed program owns
+on chain.

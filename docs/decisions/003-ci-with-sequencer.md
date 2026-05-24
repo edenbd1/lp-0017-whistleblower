@@ -14,7 +14,7 @@ A separate `verify-deployment.yml` runs nightly on `main` only — hits the publ
 
 ## Why this matters
 
-Per [`recon.md`](../recon.md), Thompson's PR #48 explicitly excludes `examples/`, `methods/guest`, `ffi/`, and the Nix flake from CI. Tranquil's PR #58 has the live-test job gated to `workflow_dispatch` with an `exit 1` install step. Neither lights up the live path on `main`. Our `e2e.yml` is the single biggest acceptance-probability lift.
+A live-sequencer e2e workflow is what makes "the on-chain registry actually works end-to-end" a CI-enforced invariant rather than a manual claim. The host-only test tier (`ci.yml`) covers unit semantics; the live tier (`e2e.yml`) covers the full pipeline against a real sequencer with `RISC0_DEV_MODE=0`. Together they keep regressions in the load-bearing path visible on every push to `main`.
 
 ## `e2e.yml` outline
 

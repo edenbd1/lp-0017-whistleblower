@@ -1,9 +1,9 @@
 //! The canonical Delivery-topic envelope.
 //!
 //! Wire format is locked at v1 in `docs/decisions/002-envelope-schema.md`.
-//! The schema is shared verbatim with Thompson's chronicle module so a
-//! single batch-anchor tool can consume topics from multiple
-//! consuming apps — see the ADR for the cross-app dedup invariant.
+//! The schema is chronicle-compatible so a single batch-anchor tool
+//! can consume topics from multiple chronicle-style consuming apps —
+//! see the ADR for the cross-app dedup invariant.
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};

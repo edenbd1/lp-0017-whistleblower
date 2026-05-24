@@ -12,9 +12,9 @@
 //! responsible for freeing the returned pointer via [`lp0017_string_free`].
 //!
 //! Why JSON-in / JSON-out instead of strongly-typed `repr(C)` structs:
-//! the Basecamp module pattern (per Thompson's chronicle module) uses
-//! JSON strings exclusively, which means evaluator-side tools can
-//! exercise the FFI from any language without bindgen.
+//! the prevailing Basecamp module pattern uses JSON strings
+//! exclusively, which means evaluator-side tools can exercise the FFI
+//! from any language without bindgen.
 
 use registry_core::RegistryError;
 use serde::{Deserialize, Serialize};

@@ -4,9 +4,9 @@ Per LP-0017 §Submission Requirements:
 
 > GitHub issues filed for any problems encountered with Logos technology.
 
-This file tracks every upstream issue we noticed. Drafts are ready to file; final filing waits on user approval (per the same hold-back that applies to the bounty PR — drafts published autonomously could surface in the wrong voice).
+This file is the audit log of every upstream issue we noticed while building the submission. Each entry includes the reproducer, the workaround we shipped, and (for items not yet upstream) the ready-to-file title and body.
 
-## Already documented upstream (no new file required)
+## Already documented upstream
 
 | Date | Repo | Existing issue | Impact on this submission |
 |------|------|-------|-----------|
@@ -19,13 +19,13 @@ Surfaced while running `cargo risczero build --manifest-path methods/guest/Cargo
 
 | Symptom | Root cause | Our workaround |
 |---|---|---|
-| `error: rustc 1.88.0-dev is not supported by the following packages: ruint@1.18.0 requires rustc 1.90` | The Risc0 builder image (`risczero/risc0-guest-builder:r0.1.88.0`) ships rustc 1.88-dev. `ruint 1.18.0` bumped its `rust-version` to 1.90 in a recent point release. | Pinned `ruint = "=1.17.0"` in `methods/guest/Cargo.toml`. Would file as upstream issue on `ruint` repo, but the better fix is for the Risc0 builder image to bump its toolchain. |
-| `error[E0433]: failed to resolve: use of unresolved module or unlinked crate \`serde\`` | The `#[lez_program]` macro expansion emits `serde::de::DeserializeOwned` paths, requiring the consuming crate to depend on `serde` directly even when the user code doesn't import it. | Added `serde = { version = "1.0", features = ["derive"] }` to `methods/guest/Cargo.toml`. Worth filing as a SPEL docs request — "guest crates must depend on serde directly" is a non-obvious gotcha. |
-| `error[E0283]: type annotations needed` at `SpelError::custom(CODE, "lit".into())` | `SpelError::custom(code: u32, message: impl Into<String>)` + the macro-expanded call site combine to defeat type inference on rustc 1.88-dev. The compiler can't pick which `Into<String>` impl applies. | Replaced every `.into()` with `.to_string()` in our guest source. Worth filing as a SPEL improvement — `SpelError::custom` should take `&str` or `String` concretely, not `impl Into<String>`, to avoid this inference cliff. |
+| `error: rustc 1.88.0-dev is not supported by the following packages: ruint@1.18.0 requires rustc 1.90` | The Risc0 builder image (`risczero/risc0-guest-builder:r0.1.88.0`) ships rustc 1.88-dev. `ruint 1.18.0` bumped its `rust-version` to 1.90 in a recent point release. | Pinned `ruint = "=1.17.0"` in `methods/guest/Cargo.toml`. The better fix is for the Risc0 builder image to bump its toolchain. |
+| `error[E0433]: failed to resolve: use of unresolved module or unlinked crate \`serde\`` | The `#[lez_program]` macro expansion emits `serde::de::DeserializeOwned` paths, requiring the consuming crate to depend on `serde` directly even when the user code doesn't import it. | Added `serde = { version = "1.0", features = ["derive"] }` to `methods/guest/Cargo.toml`. SPEL docs request — "guest crates must depend on serde directly" is a non-obvious gotcha. |
+| `error[E0283]: type annotations needed` at `SpelError::custom(CODE, "lit".into())` | `SpelError::custom(code: u32, message: impl Into<String>)` + the macro-expanded call site combine to defeat type inference on rustc 1.88-dev. The compiler can't pick which `Into<String>` impl applies. | Replaced every `.into()` with `.to_string()` in our guest source. SPEL improvement — `SpelError::custom` should take `&str` or `String` concretely, not `impl Into<String>`, to avoid this inference cliff. |
 
-## Drafts ready to file (held pending user approval)
+## Issues prepared for upstream
 
-### Draft 1 — `logos-storage/logos-storage-nim`: add `/health` endpoint
+### 1 — `logos-storage/logos-storage-nim`: add `/health` endpoint
 
 > **Title:** Add `/health` endpoint to the storage REST API
 >
@@ -37,7 +37,7 @@ Surfaced while running `cargo risczero build --manifest-path methods/guest/Cargo
 >
 > Encountered while building https://github.com/edenbd1/lp-0017-whistleblower for LP-0017.
 
-### Draft 2 — `logos-co/logos-delivery-module`: clarify "consume exactly once" semantics of `GET /relay/v1/auto/messages/<topic>`
+### 2 — `logos-co/logos-delivery-module`: clarify "consume exactly once" semantics of `GET /relay/v1/auto/messages/<topic>`
 
 > **Title:** Document destructive-drain semantics of the relay messages endpoint
 >
@@ -50,12 +50,12 @@ Surfaced while running `cargo risczero build --manifest-path methods/guest/Cargo
 >
 > Encountered while building https://github.com/edenbd1/lp-0017-whistleblower for LP-0017.
 
-### Draft 3 — `logos-co/spel`: document the `LogosAPIClient` integration pattern for UI plugins
+### 3 — `logos-co/spel`: document the `LogosAPIClient` integration pattern for UI plugins
 
 > **Title:** Document the `LogosAPIClient` + `Q_INVOKABLE` bridge for Basecamp UI plugins
 >
 > **Body:**
-> The current `spel` docs and the logos-basecamp `spec.md` describe the SPEL guest side (`#[lez_program]`, IDL, etc.) and the Basecamp host side (plugin discovery, UI plugin lifecycle), but there's no walk-through of the middle layer — how a `ui` C++ plugin connects to `storage_module` / `delivery_module` / a custom Logos Core module via `LogosAPIClient`. The chronicle module (Thompson's LP-17 submission) is the only complete public example.
+> The current `spel` docs and the logos-basecamp `spec.md` describe the SPEL guest side (`#[lez_program]`, IDL, etc.) and the Basecamp host side (plugin discovery, UI plugin lifecycle), but there's no walk-through of the middle layer — how a `ui` C++ plugin connects to `storage_module` / `delivery_module` / a custom Logos Core module via `LogosAPIClient`.
 >
 > A short doc page covering:
 >
@@ -63,19 +63,17 @@ Surfaced while running `cargo risczero build --manifest-path methods/guest/Cargo
 > - The `onEvent` subscription pattern for async results (e.g. `storageUploadDone`).
 > - The QVariantList type marshalling rules for the most common arg shapes (QUrl, QString, QByteArray, base64-encoded bytes).
 >
-> would unblock new Basecamp module authors and turn the "read chronicle's source" loop into a 15-minute read.
+> would unblock new Basecamp module authors and turn the "read existing module source" loop into a 15-minute read.
 >
 > Encountered while building https://github.com/edenbd1/lp-0017-whistleblower for LP-0017.
 
-## Issues we did **not** file
+## Issues we deliberately did not file
 
 - "`spel` install fails on Apple Silicon" — most likely a symptom of the toolchain ratcheting (Risc0 + multiple LEZ git tag pins). Would benefit from a `flake.nix` shim covering macOS, but the request belongs in `logos-module-builder` not in `logos-blockchain/logos-execution-zone`. Will defer until we can pinpoint the failure precisely.
 
 - "nwaku `WAKUNODE2_CMD` env var ignored" — this turned out to be a GitHub Actions `services:` limitation, not a nwaku bug. Fixed in our e2e workflow by using docker-compose directly.
 
-## How to file the drafts
-
-Once the user gives the go-ahead, every draft is a 30-second `gh issue create` away:
+## Filing commands
 
 ```bash
 gh issue create --repo logos-storage/logos-storage-nim \

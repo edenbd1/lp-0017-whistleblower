@@ -2,11 +2,8 @@ name: e2e
 
 # Slow tier. Spawns `lgs localnet`, brings up the docker-compose stack
 # (nwaku + storage), deploys the SPEL guest with `RISC0_DEV_MODE=0`,
-# and runs a real anchor round-trip through the batch CLI.
-#
-# This is the kill-criterion vs Thompson's PR #48 — his CI explicitly
-# excludes examples/, methods/guest, ffi/, and the nix flake
-# (see docs/recon.md). Ours actually exercises the live path.
+# and runs a real anchor round-trip through the batch CLI — exercising
+# the full live path end-to-end with real Risc0 proofs.
 
 on:
   # Manual dispatch only for now. The LEZ git deps (spel + wallet

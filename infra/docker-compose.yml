@@ -36,7 +36,7 @@ services:
       - --store=true
       - --store-message-db-url=sqlite:///store/store.sqlite3
       - --discv5-discovery=true
-      # logos.dev fleet bootstrap peers — same set Thompson's repo uses.
+      # logos.dev fleet bootstrap peers (Status.im public delivery fleet).
       - --staticnode=/dns4/delivery-01.do-ams3.logos.dev.status.im/tcp/30303/p2p/16Uiu2HAmTUbnxLGT9JvV6mu9oPyDjqHK4Phs1VDJNUgESgNSkuby
       - --staticnode=/dns4/delivery-02.do-ams3.logos.dev.status.im/tcp/30303/p2p/16Uiu2HAmMK7PYygBtKUQ8EHp7EfaD3bCEsJrkFooK8RQ2PVpJprH
       - --staticnode=/dns4/delivery-01.gc-us-central1-a.logos.dev.status.im/tcp/30303/p2p/16Uiu2HAm4S1JYkuzDKLKQvwgAhZKs9otxXqt8SCGtB4hoJP1S397
