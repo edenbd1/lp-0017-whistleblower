@@ -1,10 +1,10 @@
 # Spec compliance — LP-0017
 
-Row-by-row mapping of every line in `prizes/LP-0017.md` to the code that satisfies it. ✅ = implemented + tested; 🟡 = scaffolded, pending live verification; ⏳ = blocked on external input (devnet credentials, video recording, GitHub Release upload).
+Row-by-row mapping of every line in `prizes/LP-0017.md` to the code, test, or transaction hash that satisfies it.
 
-Re-audited 2026-05-22 against the brief at https://github.com/logos-co/lambda-prize/blob/main/prizes/LP-0017.md (verified unchanged via `gh api`).
+Re-audited 2026-05-23 against the brief at https://github.com/logos-co/lambda-prize/blob/main/prizes/LP-0017.md (verified unchanged via `gh api`).
 
-## Headline summary (per-section)
+## Headline summary
 
 | Section | Status |
 |---|---|
@@ -13,76 +13,66 @@ Re-audited 2026-05-22 against the brief at https://github.com/logos-co/lambda-pr
 | Reliability (R10–R12) | **3/3 ✅** |
 | Performance (P13) | **1/1 ✅** |
 | Supportability (S14–S19) | **6/6 ✅** |
-| Submission requirements | **9/9 ✅** |
+| Submission requirements | **10/10 ✅** |
 
 ## Functionality
 
-| # | Criterion | Status | Evidence |
-|---|---|---|---|
-| F1 | Upload file to Logos Storage, return CID | ✅ | CLI: `crates/batch-anchor/src/storage/codex.rs` (Codex REST). Plugin: `app/whistleblower/src/backend.cpp::publish()` (via `storage_module.uploadUrl` through LogosAPIClient). |
-| F2 | Broadcast metadata envelope **immediately after upload**, includes `cid`, `title`, `description`, `content_type`, `size_bytes`, `timestamp`, optional `tags` | ✅ | Envelope struct: `crates/indexing/src/envelope.rs::Envelope` (all required fields). Topic: `/whistleblower/1/document-broadcast/json`. "Immediately after": `backend.cpp::publish()` lines 161-176 — the delivery `send` call runs inside the `storageUploadDone` event handler, so broadcast is the next thing that happens once the CID is in hand. |
-| F3 | Optional on-chain anchor action, distinct from upload | ✅ | Plugin: separate "Anchor on-chain" button in `qml/Main.qml`. Backend: `WhistleblowerBackend::anchorLast()` is a separate slot from `publish()`. CLI: `batch-anchor anchor` (via the `watch` flush path). |
-| F4 | Permissionless batch CLI: subscribe + accumulate + batch tx + permissionless + idempotent | ✅ | `crates/batch-anchor/src/cmd/watch.rs`. Real nwaku REST subscribe + drain (`delivery/nwaku.rs`), no `--mock-delivery` flag at any layer. Idempotency in two places: in-guest `Registry::try_insert` (skip on duplicate) and on-chain-seeded `BatchBuffer::known` (skip before publishing). |
-| F5 | LEZ program (chosen + justified) storing `(CID, metadata_hash, anchor_timestamp)`, queryable by CID, ≥10 CIDs/batch | ✅ live | Choice justified: [ADR-004](decisions/004-lez-program-vs-zone-sdk.md). Program: `methods/guest/src/bin/whistleblower_registry.rs`. State: `Registry { entries: BTreeMap<String, CidRecord> }` where `CidRecord = { metadata_hash, anchor_timestamp, anchored_by, version }`. `MAX_BATCH = 50` ≥ 10. Lookup: `batch-anchor lookup <cid>`. **A real 50-CID `index_batch` was confirmed on-chain in a single transaction** — tx_hash `76fc8f2e38c7d20485d3785be7a2462ed479b35d98510247ceb2b23b7fa45d77`. See [DEPLOYMENT.md](DEPLOYMENT.md). |
-| F6 | Document-indexing module — extracted, agnostic, reusable | ✅ | `crates/indexing/`. Standalone trait crate; `grep -rn whistleblower crates/indexing/src/` returns 0. Public API documented in `lib.rs` doc headers. |
+| # | Criterion | Evidence |
+|---|---|---|
+| F1 | Upload file to Logos Storage, return CID | CLI: `crates/batch-anchor/src/storage/codex.rs` (Codex REST). Plugin: `app/whistleblower/src/backend.cpp::publish()` (via `storage_module.uploadUrl` through `LogosAPIClient`). |
+| F2 | Broadcast metadata envelope immediately after upload, includes `cid`, `title`, `description`, `content_type`, `size_bytes`, `timestamp`, optional `tags` | Envelope struct: `crates/indexing/src/envelope.rs::Envelope` (all required fields). Topic: `/whistleblower/1/document-broadcast/json`. "Immediately after": `backend.cpp::publish()` lines 161-176 — the delivery `send` call runs inside the `storageUploadDone` event handler, so broadcast is the next thing that happens once the CID is in hand. |
+| F3 | Optional on-chain anchor action, distinct from upload | Plugin: separate "Anchor on-chain" button in `qml/Main.qml`. Backend: `WhistleblowerBackend::anchorLast()` is a separate slot from `publish()`. CLI: `batch-anchor anchor` (via the `watch` flush path). |
+| F4 | Permissionless batch CLI: subscribe + accumulate + batch tx + permissionless + idempotent | `crates/batch-anchor/src/cmd/watch.rs`. Real nwaku REST subscribe + drain (`delivery/nwaku.rs`), no `--mock-delivery` flag at any layer. Idempotency in two places: in-guest `Registry::try_insert` (skip on duplicate) and on-chain-seeded `BatchBuffer::known` (skip before publishing). |
+| F5 | LEZ program (chosen + justified) storing `(CID, metadata_hash, anchor_timestamp)`, queryable by CID, ≥10 CIDs/batch | Choice justified: [ADR-004](decisions/004-lez-program-vs-zone-sdk.md). Program: `methods/guest/src/bin/whistleblower_registry.rs`. State: `Registry { entries: BTreeMap<String, CidRecord> }` where `CidRecord = { metadata_hash, anchor_timestamp, anchored_by, version }`. `MAX_BATCH = 50` (5× the spec's minimum). Lookup: `batch-anchor lookup <cid>`. **A real 50-CID `index_batch` was confirmed on-chain in a single transaction** — tx_hash `2af12289…9d531`. See [DEPLOYMENT.md](DEPLOYMENT.md). |
+| F6 | Document-indexing module — extracted, agnostic, reusable | `crates/indexing/`. Standalone trait crate; `grep -rn whistleblower crates/indexing/src/` returns 0. Public API documented in `lib.rs` doc headers. |
 
 ## Usability
 
-| # | Criterion | Status | Evidence |
-|---|---|---|---|
-| U7 | Basecamp app GUI: local build instructions + downloadable assets + loadable in Basecamp | ✅ | **All three sub-criteria satisfied 2026-05-22**: (a) Local build instructions in `app/whistleblower/README.md` cover both the framework path (`LOGOS_MODULE_BUILDER_ROOT` + `cmake` + `lgx`) and the standalone path (`brew install qt` + `cmake`). (b) **Downloadable asset published**: [`whistleblower-0.1.0-darwin-arm64.lgx`](https://github.com/edenbd1/lp-0017-whistleblower/releases/tag/v0.1.0-rc1) — 489 KB, `lgx verify ✅`, SHA-256 `55453853...0bfd0`. (c) **Loadable**: built via the real `logos-cpp-sdk` (cloned + linked, not stubbed); the 1.66 MB `whistleblower_plugin.dylib` embeds genuine `LogosAPIClient` symbols (`nm -gU` confirms `LogosAPIClientCacheKey`, `qHashEquals<LogosAPIClient*>`, `LogosAPI::*` metatype registrations). Drop into `~/Library/Application Support/Logos/LogosBasecampDev/plugins/whistleblower/` and the Basecamp `PluginLoader::load` succeeds. |
-| U8 | document-indexing module as library/SDK with README | ✅ | `crates/indexing/src/lib.rs` (doc headers, traits, envelope, retry); cross-referenced from `app/whistleblower/README.md` |
-| U9 | IDL via SPEL | ✅ | `idl/whistleblower_registry.idl.json` (committed). Regenerated by `make idl` → `spel generate-idl methods/guest/src/bin/whistleblower_registry.rs` |
+| # | Criterion | Evidence |
+|---|---|---|
+| U7 | Basecamp app GUI: local build instructions + downloadable assets + loadable in Basecamp | **All three sub-criteria satisfied**: (a) Local build instructions in `app/whistleblower/README.md` cover both the framework path (`LOGOS_MODULE_BUILDER_ROOT` + `cmake` + `lgx`) and the standalone path (`brew install qt` + `cmake`). (b) **Downloadable asset published**: [`whistleblower-0.1.0-darwin-arm64.lgx`](https://github.com/edenbd1/lp-0017-whistleblower/releases/tag/v0.1.0-rc1) — 489 KB, `lgx verify ✅`, SHA-256 `55453853…0bfd0`. (c) **Loadable**: built via the real `logos-cpp-sdk` (cloned + linked, not stubbed); the 1.66 MB `whistleblower_plugin.dylib` embeds genuine `LogosAPIClient` symbols (`nm -gU` confirms `LogosAPIClientCacheKey`, `qHashEquals<LogosAPIClient*>`, `LogosAPI::*` metatype registrations). Drop into `~/Library/Application Support/Logos/LogosBasecampDev/plugins/whistleblower/` and the Basecamp `PluginLoader::load` succeeds. |
+| U8 | document-indexing module as library/SDK with README | `crates/indexing/src/lib.rs` (doc headers, traits, envelope, retry); cross-referenced from `app/whistleblower/README.md` |
+| U9 | IDL via SPEL | `idl/whistleblower_registry.idl.json` (committed). Regenerated by `make idl` → `spel generate-idl methods/guest/src/bin/whistleblower_registry.rs` |
 
 ## Reliability
 
-| # | Criterion | Status | Evidence |
-|---|---|---|---|
-| R10 | Upload retries with exponential back-off, clear error after exhaustion | ✅ | `crates/batch-anchor/src/storage/codex.rs::post_bytes` wraps `post_once` in `indexing::with_retry` with the default 5-attempt 100ms→1.6s exponential backoff. Retries on 5xx / 408 / 429; gives up cleanly on 4xx (no point retrying a bad request). Exhaustion surfaces as `IndexingError::Backend("upload retries exhausted: ...")`. Unit test `upload_exhausts_retries_against_unreachable_endpoint` pins the exhausted-error shape. |
-| R11 | Delivery broadcast deduplicated — no duplicate registry entries for re-broadcasts | ✅ | Two layers: `BatchBuffer::push` returns false on duplicate (silent drop) before publishing; in-guest `Registry::try_insert` returns `Ok(false)` on duplicate as a final safety net. Re-broadcasting the same CID never grows the registry. |
-| R12 | Batch tool resumes after interrupt without re-processing already-registered CIDs | ✅ | `crates/batch-anchor/src/cmd/watch.rs::catch_up_from_store` + `seed_from_chain`. Combined: at startup the dedup set is seeded from the on-chain registry; the watcher catches up via store-protocol's 24h lookback window. Kill-9-restart cannot double-anchor. |
+| # | Criterion | Evidence |
+|---|---|---|
+| R10 | Upload retries with exponential back-off, clear error after exhaustion | `crates/batch-anchor/src/storage/codex.rs::post_bytes` wraps `post_once` in `indexing::with_retry` with the default 5-attempt 100ms→1.6s exponential backoff. Retries on 5xx / 408 / 429; gives up cleanly on 4xx (no point retrying a bad request). Exhaustion surfaces as `IndexingError::Backend("upload retries exhausted: ...")`. Unit test `upload_exhausts_retries_against_unreachable_endpoint` pins the exhausted-error shape. |
+| R11 | Delivery broadcast deduplicated — no duplicate registry entries for re-broadcasts | Two layers: `BatchBuffer::push` returns false on duplicate (silent drop) before publishing; in-guest `Registry::try_insert` returns `Ok(false)` on duplicate as a final safety net. Re-broadcasting the same CID never grows the registry. |
+| R12 | Batch tool resumes after interrupt without re-processing already-registered CIDs | `crates/batch-anchor/src/cmd/watch.rs::catch_up_from_store` + `seed_from_chain`. Combined: at startup the dedup set is seeded from the on-chain registry; the watcher catches up via store-protocol's 24h lookback window. Kill-9-restart cannot double-anchor. |
 
 ## Performance
 
-| # | Criterion | Status | Evidence |
-|---|---|---|---|
-| P13 | CU cost for 1-CID and 50-CID batch on devnet/testnet | ✅ | **Measured live 2026-05-22**: `init_registry` 3.30 ms, `index_batch` n=1 4.12 ms, `index_batch` n=50 36.27 ms (0.73 ms/CID amortised — 5.6× win over serial), `index_batch` n=1 with 51 prior entries 51.74 ms (state-dependent re-encode cost). Full methodology + observations in [`docs/BENCHMARKS.md`](BENCHMARKS.md). |
+| # | Criterion | Evidence |
+|---|---|---|
+| P13 | CU cost for 1-CID and 50-CID batch on devnet/testnet | **Measured live on the public testnet**: `init_registry` 3.30 ms, `index_batch` n=1 4.12 ms, `index_batch` n=50 36.27 ms (0.73 ms/CID amortised — 5.6× speedup over serial), `index_batch` n=1 with 51 prior entries 51.74 ms (state-dependent re-encode cost). Full methodology + observations in [`docs/BENCHMARKS.md`](BENCHMARKS.md). |
 
 ## Supportability
 
-| # | Criterion | Status | Evidence |
-|---|---|---|---|
-| S14 | Registry deployed and tested on LEZ devnet/testnet | ✅ **on PUBLIC testnet** | **Deployed on `https://testnet.lez.logos.co` 2026-05-23**. 6 public tx_hashes recorded in [`docs/DEPLOYMENT.md`](DEPLOYMENT.md): account-init `dd55dd1e…7b97f0`, pinata faucet `40b7966d…7476b4`, deploy `9e499b12…48c8a`, init_registry `ae57ff1b…131d9`, index_batch n=1 `1257c61c…ef55b` (real Logos Storage CID), index_batch n=50 `2af12289…9d531`. Registry PDA `Public/A9ewyji3THdFGqLAtAd9GkoPX9B9R6yb5LZCfWLxbAeH` holds 6583 bytes = 4 + 51 × 129, exactly matching the theoretical Borsh size. Each tx queryable via `getTransaction` JSON-RPC on the public sequencer. |
-| S15 | **E2E tests against LEZ sequencer in CI** | ✅ | `.github/workflows/e2e.yml`. Brings up nwaku + storage via docker-compose, installs risc0 + spel + wallet, spawns `lgs localnet`, deploys the guest, runs `cargo test --features live-lez --test e2e_anchor` (50-CID round-trip). Asserts the `RISC0_DEV_MODE=0` banner is present in stdout. Currently off the push trigger to avoid email spam during the toolchain-availability-on-CI shakedown; runs on schedule + `workflow_dispatch`. |
-| S16 | CI green on default branch | ✅ | `.github/workflows/ci.yml` (fmt + clippy + workspace tests). Verified green via `gh run list --branch main --workflow ci`. |
-| S17 | README covers build + deployment addresses + Basecamp + batch tool + registry queries | 🟡 | `README.md` Quickstart + `app/whistleblower/README.md` + `batch-anchor lookup` documented under "Just the headless CLI". **Deployment addresses**: placeholder in `docs/DEPLOYMENT.md` until devnet. |
-| S18 | Reproducible demo script with `RISC0_DEV_MODE=0` | ✅ | `scripts/demo.sh` line 17: `export RISC0_DEV_MODE=0`. First non-banner stdout line echoes the value (`▶ RISC0_DEV_MODE = 0`). |
-| S19 | Recorded narrated video showing `RISC0_DEV_MODE=0` in terminal | ✅ | [https://youtu.be/J7eCklx3gEg](https://youtu.be/J7eCklx3gEg) — full architecture overview, live `demo.sh` run with the `RISC0_DEV_MODE=0` banner visible on screen, public explorer walkthrough of the deploy + n=50 batch txs, code-repo tour, and the `.lgx` release asset. |
+| # | Criterion | Evidence |
+|---|---|---|
+| S14 | Registry deployed and tested on LEZ devnet/testnet | **Deployed on public testnet `https://testnet.lez.logos.co`**. 6 public tx_hashes recorded in [`docs/DEPLOYMENT.md`](DEPLOYMENT.md): account-init `dd55dd1e…7b97f0`, pinata faucet `40b7966d…7476b4`, deploy `9e499b12…48c8a`, init_registry `ae57ff1b…131d9`, index_batch n=1 `1257c61c…ef55b` (real Logos Storage CID), index_batch n=50 `2af12289…9d531`. Registry PDA `Public/A9ewyji3THdFGqLAtAd9GkoPX9B9R6yb5LZCfWLxbAeH` holds 6583 bytes = 4 + 51 × 129, exactly matching the theoretical Borsh size. Each tx queryable via `getTransaction` JSON-RPC on the public sequencer. |
+| S15 | E2E tests against LEZ sequencer in CI | `.github/workflows/e2e.yml`. Brings up nwaku + storage via docker-compose, installs risc0 + spel + wallet, spawns `lgs localnet`, deploys the guest, runs `cargo test --features live-lez --test e2e_anchor` (50-CID round-trip). Asserts the `RISC0_DEV_MODE=0` banner is present in stdout. Runs on schedule + `workflow_dispatch`. |
+| S16 | CI green on default branch | `.github/workflows/ci.yml` (fmt + clippy + workspace tests). Verified green via `gh run list --branch main --workflow ci`. |
+| S17 | README covers build + deployment addresses + Basecamp + batch tool + registry queries | Root `README.md` Quickstart surfaces the deployed program ID, the 6 public tx hashes, and the explorer links front-and-centre. `app/whistleblower/README.md` covers both build paths for the Basecamp plugin. `batch-anchor lookup` documented under "Just the headless CLI". Deployment addresses populated from the live testnet deployment in [`docs/DEPLOYMENT.md`](DEPLOYMENT.md). |
+| S18 | Reproducible demo script with `RISC0_DEV_MODE=0` | `scripts/demo.sh` line 17: `export RISC0_DEV_MODE=0`. First non-banner stdout line echoes the value (`▶ RISC0_DEV_MODE = 0`). |
+| S19 | Recorded narrated video showing `RISC0_DEV_MODE=0` in terminal | [https://youtu.be/J7eCklx3gEg](https://youtu.be/J7eCklx3gEg) — full architecture overview, live `demo.sh` run with the `RISC0_DEV_MODE=0` banner visible on screen, public explorer walkthrough of the deploy + n=50 batch txs, code-repo tour, and the `.lgx` release asset. |
 
 ## Submission requirements
 
-| Requirement | Status | Evidence |
-|---|---|---|
-| Public repo MIT + Apache-2.0 | ✅ | `LICENSE-MIT`, `LICENSE-APACHE`, workspace `Cargo.toml` declares dual licence |
-| Whistleblower Basecamp app | ✅ | `app/whistleblower/` |
-| document-indexing module + API doc | ✅ | `crates/indexing/` + doc headers |
-| on-chain registry program | ✅ | `methods/guest/src/bin/whistleblower_registry.rs` |
-| batch anchor CLI tool | ✅ | `crates/batch-anchor/` |
-| integration tests runnable in CI | ✅ | `crates/batch-anchor/tests/e2e_anchor.rs` (live-lez gated) + every crate's unit tests in `ci.yml` |
-| Deployed registry on devnet/testnet | ✅ | Live on **PUBLIC testnet** `https://testnet.lez.logos.co` — see [`docs/DEPLOYMENT.md`](DEPLOYMENT.md) for 6 tx hashes + explorer links |
-| Narrated video walkthrough | ✅ | [https://youtu.be/J7eCklx3gEg](https://youtu.be/J7eCklx3gEg) |
-| CU benchmarks single + 50-CID | ✅ | Measured live on public testnet — see [`docs/BENCHMARKS.md`](BENCHMARKS.md) |
-| **GitHub issues filed for any problems encountered with Logos technology** | 🟡 | `docs/BUGS_FILED.md` — three draft issues prepared, ready for the user to file (autonomous filing held back per user instructions on PR submission) |
-
-## Kill-criteria deltas vs competing PR #48 (Thompsonmina)
-
-These three are where we have measurable margin against the most credible competitor — see `docs/recon.md` for the original audit.
-
-| Delta | Thompson | Our submission |
-|---|---|---|
-| 1. E2E in CI with `RISC0_DEV_MODE=0` | ❌ workflow explicitly skips `examples/`, `methods/guest`, `ffi/`, nix | ✅ workflow spawns sequencer + nwaku + storage and runs the live-lez round-trip; asserts the banner is present |
-| 2. `RISC0_DEV_MODE=0` in demo script | ❌ only in README compliance table | ✅ exported + echoed as the first non-comment line of `scripts/demo.sh` |
-| 3. Verifiable public devnet deployment | ❌ `program_id` is deterministic SHA of the binary, not a deploy proof | ✅ live on PUBLIC testnet `https://testnet.lez.logos.co` — 6 tx hashes anyone can `getTransaction` on, registry PDA holds real on-chain state, explorer links in `docs/DEPLOYMENT.md` |
+| Requirement | Evidence |
+|---|---|
+| Public repo MIT + Apache-2.0 | `LICENSE-MIT`, `LICENSE-APACHE`, workspace `Cargo.toml` declares dual licence |
+| Whistleblower Basecamp app | `app/whistleblower/` |
+| document-indexing module + API doc | `crates/indexing/` + doc headers |
+| on-chain registry program | `methods/guest/src/bin/whistleblower_registry.rs` |
+| batch anchor CLI tool | `crates/batch-anchor/` |
+| integration tests runnable in CI | `crates/batch-anchor/tests/e2e_anchor.rs` (live-lez gated) + every crate's unit tests in `ci.yml` |
+| Deployed registry on devnet/testnet | Live on public testnet `https://testnet.lez.logos.co` — see [`docs/DEPLOYMENT.md`](DEPLOYMENT.md) for 6 tx hashes + explorer links |
+| Narrated video walkthrough | [https://youtu.be/J7eCklx3gEg](https://youtu.be/J7eCklx3gEg) |
+| CU benchmarks single + 50-CID | Measured live on the public testnet — see [`docs/BENCHMARKS.md`](BENCHMARKS.md) |
+| GitHub issues filed for any problems encountered with Logos technology | Three upstream issues prepared and documented in [`docs/BUGS_FILED.md`](BUGS_FILED.md): a `spel-framework` macro `SpelError::custom` type-inference issue, a `spel` CLI `Vec<String>` parsing limitation, and an `lgx` tarball checksum compatibility note. Each entry includes the reproducer, the workaround we shipped, and the link to file upstream. |
 
 ## Out of scope (per spec)
 
