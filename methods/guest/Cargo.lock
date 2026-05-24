@@ -3264,7 +3264,7 @@ dependencies = [
 [[package]]
 name = "spel-framework"
 version = "0.2.0"
-source = "git+https://github.com/Thompsonmina/spel.git?branch=cli-vec-string#fbbffd31e44ed5d7e75efdf4eaa2241f4a06bfad"
+source = "git+https://github.com/edenbd1/spel.git?branch=cli-vec-string#fbbffd31e44ed5d7e75efdf4eaa2241f4a06bfad"
 dependencies = [
  "borsh",
  "nssa_core",
@@ -3276,7 +3276,7 @@ dependencies = [
 [[package]]
 name = "spel-framework-core"
 version = "0.2.0"
-source = "git+https://github.com/Thompsonmina/spel.git?branch=cli-vec-string#fbbffd31e44ed5d7e75efdf4eaa2241f4a06bfad"
+source = "git+https://github.com/edenbd1/spel.git?branch=cli-vec-string#fbbffd31e44ed5d7e75efdf4eaa2241f4a06bfad"
 dependencies = [
  "borsh",
  "nssa_core",
@@ -3291,7 +3291,7 @@ dependencies = [
 [[package]]
 name = "spel-framework-macros"
 version = "0.2.0"
-source = "git+https://github.com/Thompsonmina/spel.git?branch=cli-vec-string#fbbffd31e44ed5d7e75efdf4eaa2241f4a06bfad"
+source = "git+https://github.com/edenbd1/spel.git?branch=cli-vec-string#fbbffd31e44ed5d7e75efdf4eaa2241f4a06bfad"
 dependencies = [
  "proc-macro2",
  "quote",
