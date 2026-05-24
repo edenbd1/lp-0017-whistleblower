@@ -33,7 +33,7 @@ path = "src/bin/whistleblower_registry.rs"
 # inside the risc0 builder image. We pin to the `cli-vec-string` fork
 # which carries the fix plus a Vec<String> CLI-parsing improvement
 # (see docs/BUGS_FILED.md for the upstream patch).
-spel-framework = { git = "https://github.com/Thompsonmina/spel.git",                          branch = "cli-vec-string" }
+spel-framework = { git = "https://github.com/edenbd1/spel.git",                               branch = "cli-vec-string" }
 nssa_core      = { git = "https://github.com/logos-blockchain/logos-execution-zone.git",      tag = "v0.2.0-rc3" }
 risc0-zkvm     = { version = "=3.0.5", features = ["std"] }
 

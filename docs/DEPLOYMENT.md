@@ -105,7 +105,7 @@ cd logos-execution-zone && git checkout v0.2.0-rc3
 cargo install --path wallet --force
 # spel: a fork that adds Vec<String> flag-repetition CLI parsing
 # (see docs/BUGS_FILED.md for the upstream patch we filed).
-cargo install --git https://github.com/Thompsonmina/spel.git --branch cli-vec-string spel
+cargo install --git https://github.com/edenbd1/spel.git --branch cli-vec-string spel
 
 # macOS arm64 only: patch wallet's rpath for Python3.framework
 install_name_tool -add_rpath \
