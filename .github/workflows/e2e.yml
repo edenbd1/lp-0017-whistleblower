@@ -1,5 +1,15 @@
 name: e2e
 
+# The last recorded run of this workflow is red, and it stays red: it dates from
+# 2026-05-22, before the schedule below was commented out, and it cannot be made
+# green by re-running. The public LEZ testnet was reset onto a new chain in
+# August 2026, so the anchored records this job looks up no longer exist — not
+# "went stale", but gone with the generation that held them. Re-running would
+# produce a fresh failure that looks like a regression and is not one.
+#
+# Left as it is rather than deleted, because a workflow removed to tidy a badge
+# takes its history with it, and the history is the explanation.
+#
 # Slow tier. Spawns `lgs localnet`, brings up the docker-compose stack
 # (nwaku + storage), deploys the SPEL guest with `RISC0_DEV_MODE=0`,
 # and runs a real anchor round-trip through the batch CLI — exercising
